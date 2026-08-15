@@ -76,6 +76,12 @@ function fmtCo2Fixed(g) {
   if (g >= 1) return { v: g.toFixed(2), u: 'g' };
   return { v: g.toFixed(3), u: 'g' };
 }
+function fmtCo2Tonne(g) {
+  if (g >= 1e6) return { v: (g / 1e6).toFixed(1), u: 't CO2e' };
+  if (g >= 1000) return { v: (g / 1000).toFixed(1), u: 'kg CO2e' };
+  if (g >= 1) return { v: g.toFixed(2), u: 'g CO2e' };
+  return { v: g.toFixed(3), u: 'g CO2e' };
+}
 function fmtWaterFixed(ml) {
   if (ml >= 1000) return { v: (ml / 1000).toFixed(2), u: 'L' };
   return { v: ml.toFixed(1), u: 'ml' };
@@ -256,8 +262,14 @@ function svgScatterChart(id, points, opts = {}) {
 
   points.forEach((p, pi) => {
     const r = 4 + Math.min(16, Math.sqrt(p.size) * 2.2);
-    const cx = xAt(p.x), cy = yAt(p.y);
-    const circle = svgEl('circle', { cx, cy, r, fill: p.color, 'fill-opacity': '0.55', stroke: p.color, 'stroke-width': 1.5, 'pointer-events': 'all' });
+    const jitterX = (pi * 37 % 9) - 4;
+    const jitterY = (pi * 53 % 9) - 4;
+    let cx = xAt(p.x) + jitterX, cy = yAt(p.y) + jitterY;
+    cx = Math.min(Math.max(cx, padL + r + 2), padL + innerW - r - 2);
+    cy = Math.min(Math.max(cy, padT + r + 2), padT + innerH - r - 2);
+    const hit = svgEl('circle', { cx, cy, r: r + 5, fill: 'transparent', 'pointer-events': 'all' });
+    svg.appendChild(hit);
+    const circle = svgEl('circle', { cx, cy, r, fill: p.color, 'fill-opacity': '0.55', stroke: p.color, 'stroke-width': 1.5, 'pointer-events': 'none' });
     if (p.hollow) {
       circle.setAttribute('fill', 'none');
       circle.setAttribute('stroke-dasharray', '4 3');
@@ -266,15 +278,6 @@ function svgScatterChart(id, points, opts = {}) {
     const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9, 'font-weight': '700', 'pointer-events': 'none' });
     t.textContent = p.label;
     svg.appendChild(t);
-    if (opts.topLabels && opts.topLabels.includes(pi)) {
-      const cost = p.ex && p.ex.fixedCostUsd != null
-        ? fmtCostFixed(p.ex.fixedCostUsd)
-        : null;
-      const costText = cost ? `${cost.v}${cost.u}` : (p.y >= 1 ? `$${p.y.toFixed(2)}` : `$${p.y.toExponential(1)}`);
-      const lt = svgEl('text', { x: cx + r + 6, y: cy + 3.5, fill: '#fff', 'font-size': 10, 'font-weight': '700', 'pointer-events': 'none' });
-      lt.textContent = costText;
-      svg.appendChild(lt);
-    }
     if (tip && opts.tip) {
       const move = (e) => {
         const rect = host.getBoundingClientRect();
@@ -286,9 +289,9 @@ function svgScatterChart(id, points, opts = {}) {
         tip.style.top = Math.min(top, rect.height - tip.offsetHeight - 8) + 'px';
       };
       const leave = () => { tip.style.display = 'none'; };
-      circle.addEventListener('mousemove', move);
-      circle.addEventListener('mouseenter', move);
-      circle.addEventListener('mouseleave', leave);
+      hit.addEventListener('mousemove', move);
+      hit.addEventListener('mouseenter', move);
+      hit.addEventListener('mouseleave', leave);
     }
   });
 
@@ -306,7 +309,7 @@ function svgScatterChart(id, points, opts = {}) {
     ly += 20;
   });
   const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 10 });
-  cap.textContent = opts.sizeLabel || 'Bubble = water';
+  cap.textContent = 'Bubble size = water (ml)';
   svg.appendChild(cap);
   if (points.some((p) => p.hollow)) {
     const cap2 = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
@@ -340,17 +343,8 @@ function buildExamplesScatter(metricKey = 'usd') {
       ex,
     };
   });
-  const topLabels = metricKey === 'usd' || metricKey === undefined
-    ? EXAMPLES
-        .map((ex, i) => ({ i, cost: exampleResult(ex, gridG, pue).perQuery.costUsd }))
-        .filter((x) => x.cost != null)
-        .sort((a, b) => b.cost - a.cost)
-        .slice(0, 3)
-        .map((x) => x.i)
-    : [];
   svgScatterChart('examplesScatter', points, {
     yLabel: metric.label,
-    topLabels,
     tip: (p) => {
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
@@ -359,7 +353,6 @@ function buildExamplesScatter(metricKey = 'usd') {
       return `<div class="tip-title">${p.ex.desc}</div>
         <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u} · 💵 ${costCell}</div>
         <div class="tip-metrics">${exampleModelName(p.ex)}</div>
-        <div class="tip-note">${exampleEqText(p.ex, gridG, pue)}</div>
         ${p.ex.note ? `<div class="tip-note">${p.ex.note}</div>` : ''}`;
     },
   });
@@ -714,6 +707,8 @@ function renderRightToolForTask() {
 
 function renderAuContext() {
   $('auNotes').innerHTML = noteListHtml(DATA.auContext.notes || []);
+  const synthesis = DATA.macro.synthesis;
+  $('synthesisNote').innerHTML = noteListHtml([{ text: synthesis.note, sources: synthesis.sources }]);
   const buildOutNotes = [
     { text: 'Announced pipeline: ~21.6 GW (Data Centres Australia / DC Byte). Not directly comparable to operational capacity — most announced projects never get built.', sources: ['dcByte'] },
     { text: 'AEMO disclosed 5.4 GW across 11 projects in its transmission connection queue (June 2026) — connection interest, not committed builds (~60% NSW / 40% VIC).', sources: ['aemoDc'] },
@@ -753,8 +748,8 @@ function buildTrainingChart() {
   const host = $('trainingChart');
   if (!host) return;
   host.innerHTML = '';
-  const W = 560, H = 240;
-  const padL = 190, padR = 14, padT = 14, padB = 34;
+  const W = 560, H = 250;
+  const padL = 190, padR = 14, padT = 16, padB = 34;
   const innerW = W - padL - padR, innerH = H - padT - padB;
 
   const gridG = DATA.gridIntensity.gCO2ePerKWh;
@@ -765,21 +760,29 @@ function buildTrainingChart() {
   const embodiedG = trainG * 0.2;
 
   const bars = [
-    { label: 'A single query', v: queryG, color: '#5b8ff9', fmt: fmtCo2Fixed },
-    { label: 'Your AI use (30/day, 1 yr)', v: yearG, color: '#84a98c', fmt: fmtCo2Fixed },
-    { label: 'Embodied (manufacture) share', v: embodiedG, color: '#7c5cd6', fmt: fmtCo2Fixed },
-    { label: 'Training one large model', v: trainG, color: '#f28482', fmt: fmtCo2Fixed },
+    { label: 'A single query', v: queryG, color: '#5b8ff9' },
+    { label: 'Your AI use (30/day, 1 yr)', v: yearG, color: '#84a98c' },
+    { label: 'Embodied (manufacture) share', v: embodiedG, color: '#7c5cd6' },
+    { label: 'Training one large model', v: trainG, color: '#f28482' },
   ];
-  const minLog = 1e-2, maxLog = 1e9;
-  const xAt = (v) => padL + (Math.log10(v) - Math.log10(minLog)) / (Math.log10(maxLog) - Math.log10(minLog)) * innerW;
+  const linearMax = niceMax(trainG * 1.1);
+  const xAt = (v) => padL + (v / linearMax) * innerW;
+
+  const mult = (f) => {
+    if (f >= 1e9) return `~${(f / 1e9).toFixed(1)}B×`;
+    if (f >= 1e6) return `~${(f / 1e6).toFixed(1)}M×`;
+    if (f >= 1e3) return `~${(f / 1e3).toFixed(1)}k×`;
+    return `~${f.toFixed(0)}×`;
+  };
 
   const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: '100%', preserveAspectRatio: 'xMidYMid meet' });
   for (let i = 0; i <= 4; i++) {
-    const v = Math.pow(10, Math.log10(minLog) + i / 4 * (Math.log10(maxLog) - Math.log10(minLog)));
+    const v = linearMax * i / 4;
     const x = xAt(v);
     svg.appendChild(svgEl('line', { x1: x, y1: padT, x2: x, y2: padT + innerH, stroke: 'rgba(255,255,255,0.07)' }));
     const t = svgEl('text', { x, y: padT + innerH + 16, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 9 });
-    t.textContent = v >= 1e6 ? `${v / 1e6}M` : v >= 1e3 ? `${v / 1e3}k` : v.toLocaleString();
+    const f = fmtCo2Tonne(v);
+    t.textContent = `${f.v} ${f.u}`;
     svg.appendChild(t);
   }
   const barH = Math.min(innerH / bars.length * 0.55, 26);
@@ -791,13 +794,20 @@ function buildTrainingChart() {
     const lbl = svgEl('text', { x: padL - 8, y: y + barH / 2 + 3.5, 'text-anchor': 'end', fill: '#c9d1d9', 'font-size': 11 });
     lbl.textContent = b.label;
     svg.appendChild(lbl);
-    const vtx = svgEl('text', { x: x + 6, y: y + barH / 2 + 3.5, fill: '#fff', 'font-size': 10, 'font-weight': '700' });
-    const f = b.fmt(b.v);
-    vtx.textContent = `${f.v} ${f.u}`;
+    const f = fmtCo2Tonne(b.v);
+    const txt = `${f.v} ${f.u}`;
+    const endAnchor = x + 8 + txt.length * 5.5 > W - padR;
+    const tx = endAnchor ? x - 8 : x + 8;
+    const anchor = endAnchor ? 'end' : 'start';
+    const vtx = svgEl('text', { x: tx, y: y + barH / 2 + 3.5, fill: '#fff', 'font-size': 10, 'font-weight': '700', 'text-anchor': anchor });
+    vtx.textContent = txt;
     svg.appendChild(vtx);
+    const mx = svgEl('text', { x: tx, y: y + barH / 2 + 16, fill: 'rgba(255,255,255,0.75)', 'font-size': 8, 'text-anchor': anchor });
+    mx.textContent = `${mult(b.v / queryG)} a single query`;
+    svg.appendChild(mx);
   });
   const cap = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 10 });
-  cap.textContent = 'g CO2e (log scale)';
+  cap.textContent = 'g CO2e (linear scale)';
   svg.appendChild(cap);
   host.appendChild(svg);
 }
@@ -893,7 +903,7 @@ function render() {
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
 
   bindText('gridLabel', `Grid intensity: ${gridG} g CO2e/kWh (${DATA.gridIntensity.label})`);
-  bindText('gridHint', `Selected grid: ${DATA.gridIntensity.label} (~${gridG} g CO2e/kWh, ${src(DATA.gridIntensity.source)}). All CO2 and water figures on this dashboard recompute with this grid.`);
+  bindText('gridHint', `Selected grid: ${DATA.gridIntensity.label} (~${gridG} g CO2e/kWh, ${src(DATA.gridIntensity.source)}). CO2e figures recompute with this grid; water remains based on energy use and data-centre WUE.`);
   bindText('examplesGridBadge', `${DATA.gridIntensity.label} ~${gridG} g CO2e/kWh`);
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
@@ -915,8 +925,8 @@ function populateGridSelects() {
   $('gridSelectExamples').value = DATA.gridIntensity.id;
 }
 
-function onGridChange() {
-  const id = $('gridSelect').value;
+function onGridChange(event) {
+  const id = event?.target?.value || $('gridSelect').value;
   const g = DATA.grids.find((x) => x.id === id) || DATA.grids[0];
   DATA.gridIntensity = g;
   $('gridSelect').value = g.id;
@@ -925,7 +935,7 @@ function onGridChange() {
   buildEnergyChart();
   buildCostChart();
   renderStaticExamples();
-  buildExamplesScatter();
+  buildExamplesScatter($('scatterMetric').value);
   renderMethodology();
   renderCompareTab();
 }
@@ -978,7 +988,8 @@ function bindTabs() {
 document.addEventListener('DOMContentLoaded', () => {
   const vb = $('versionBadge');
   if (vb && typeof VERSION !== 'undefined') {
-    vb.textContent = `${VERSION} · static · no data leaves your browser`;
+    vb.textContent = `Version ${VERSION}`;
+    vb.title = `Dashboard version ${VERSION}`;
   }
   const modelSel = $('modelSelect');
   modelSel.innerHTML = DATA.models

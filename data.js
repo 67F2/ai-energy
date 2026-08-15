@@ -1,4 +1,4 @@
-const VERSION = 'v3';
+const VERSION = 'v4';
 
 const SOURCES = {
   wattgpu: {
@@ -325,7 +325,42 @@ const SOURCES = {
     ref: 'Paul Smith, Australian Financial Review, August 2026',
     url: 'https://www.afr.com/technology/firmus-to-turbocharge-ai-factories-roll-out-after-giant-funding-deal-20260807-p60mc5',
     cat: 'journalism',
-    note: 'Firmus Technologies closed a US$2B ($2.9B) capital raise to accelerate building AI factories across Australia and Asia-Pacific (IPO-hopeful).',
+    note: 'Firmus Technologies closed a US$2B ($2.9B) capital raise priced at $230/share to accelerate building AI factories across Australia and Asia-Pacific (IPO-hopeful; Coatue, Nvidia, Blackstone, Jane Street; >US$3B raised in the past year; valued at >US$10.5B; Project Southgate in Tasmania & South Australia).',
+  },
+  afrAemo: {
+    label: 'Data centre energy warning as Victoria demand almost doubles in a year',
+    ref: 'Jenny Wiggins, Australian Financial Review, May 2026',
+    url: 'https://www.afr.com/companies/infrastructure/aemo-says-data-centre-power-consumption-rising-faster-than-expected-20260512-p5zvxo',
+    cat: 'journalism',
+    note: 'AEMO: data centres will consume one-eighth (~12.5%) of current grid electricity within a decade. Victoria DC demand +94% to 187 MW in the year to Mar 2026 (30 facilities); NSW +18% to 398 MW. Base case >25 TWh by 2036 (up from 22-23 TWh), aggressive 35 TWh. 162 existing facilities + 90 projects in pipeline (74 in NSW/Vic). Morgan Stanley: 6% of all power by 2030, $8B-$24B new generation.',
+  },
+  afrGridNotReady: {
+    label: "'We are not ready': Business sounds alarm on data centre power use",
+    ref: 'Ryan Cropp, Australian Financial Review, January 2026',
+    url: 'https://www.afr.com/policy/energy-and-climate/we-are-not-ready-business-sounds-alarm-on-data-centre-power-use-20260105-p5nrmw',
+    cat: 'journalism',
+    note: 'Australian Industry Group letter to energy ministers: the grid is not ready for ~10 GW of very-likely data centre demand, which could add 35-70 TWh in five years (vs 180 TWh total NEM today); coal retirements at risk, metals producers could be bid out by less price-sensitive data centres.',
+  },
+  afrHunger: {
+    label: "Australia's data centre ambition depends on two things",
+    ref: 'Macdonald-Smith & Cropp, Australian Financial Review, January 2026',
+    url: 'https://www.afr.com/policy/energy-and-climate/australia-s-data-centre-ambition-depends-on-two-things-20251202-p5nk2t',
+    cat: 'journalism',
+    note: 'Data centres could use 15% of grid power and 25% of the Sydney water supply. AEMO: ~4 TWh (2% of grid) FY2025 -> 21.4 TWh (9%) by 2035 (range 12-24 TWh), 12% by 2055; McKinsey 13% by 2030. Transgrid: >10 GW of requests, 5.7 GW in formal agreements (enough for ~1.7M homes). DCs drove $3B in grid infrastructure 2020-25, +$7.2B expected next five years.',
+  },
+  afrNextdcChest: {
+    label: 'NextDC expands data centre war chest to $6.6b after latest raise',
+    ref: 'Tess Bennett, Australian Financial Review, April 2026',
+    url: 'https://www.afr.com/technology/nextdc-expands-data-centre-war-chest-to-6-6b-after-latest-raise-20260424-p5zqqa',
+    cat: 'journalism',
+    note: 'NextDC raised $750M from the bond market, expanding its war chest to $6.6B (up from $4.2B at Dec 31) after an earlier $500M deal was paused amid Middle East war market uncertainty. Largest-ever contract: 250 MW lease to an AAA-rated tech giant at Horsley Park. Pipeline costs $3B this year, $5B next year.',
+  },
+  afrNextdcBond: {
+    label: 'NextDC lands $1b for data centre build-out with 100-year bond',
+    ref: 'Tess Bennett, Australian Financial Review, April 2026',
+    url: 'https://www.afr.com/technology/nextdc-lands-1b-for-data-centre-build-out-with-100-year-bond-20260407-p5zlr9',
+    cat: 'journalism',
+    note: 'NextDC issued a $1B 100-year bond anchored by Canadian pension giant La Caisse (7.5% coupon first 5 years, then 9.2%) to help fund the $15B S4/S7 Sydney build-out; OpenAI is anchor tenant at S7 Eastern Creek. Largest listed data centre developer.',
   },
 };
 
@@ -497,7 +532,14 @@ const DATA = {
       { text: 'Reported data-centre water undercounts: US indirect water (at the power plants) is ~12x the direct figure, and only Meta reports it (WSJ / LBNL 2024).', sources: ['wsjWater'] },
       { text: 'Indirect (electricity-embedded) water is the dominant, undercounted component: IEA-implied ~1.04 L/kWh vs ~3.40 L/kWh actual (Apple+Meta+Google US, 2023); Meta ~3.92 L/kWh, Google ~2.97 L/kWh (Patterns 2026).', sources: ['cellReports', 'wsjWater'] },
       { text: 'AI is ~15-20% of total data-center electricity at end-2024, with AI power demand at 9.4 GW rising to 23 GW through 2025 (Patterns 2026).', sources: ['cellReports'] },
+      { text: 'Australia: AEMO expects data centres to consume one-eighth (~12.5%) of current grid electricity within a decade; Victoria DC demand almost doubled in a year (+94% to 187 MW), NSW +18% to 398 MW (AFR / AEMO).', sources: ['afrAemo', 'climateCouncil'] },
+      { text: 'AI Group warns the grid is not ready: ~10 GW of very-likely data-centre demand could add 35-70 TWh in five years versus 180 TWh NEM demand today, risking coal retirements and industrial load (AFR).', sources: ['afrGridNotReady', 'afrHunger'] },
+      { text: 'Australia data-centre demand could reach 21.4 TWh (9% of grid) by 2035 - up from ~4 TWh (2%) - with DCs possibly using 15% of grid power and 25% of Sydney water by then; Transgrid has 5.7 GW in formal connection agreements (AFR).', sources: ['afrHunger', 'afrAemo'] },
     ],
+    synthesis: {
+      note: 'Collating global and Australian projections: global data-centre electricity roughly doubles from ~415 TWh (2024) to ~945 TWh (2030), and six leading AI firms alone rise from ~118 TWh to 239-295 TWh. Australia is a fast-growing share: AEMO sees one-eighth of current grid electricity consumed by data centres within a decade, tripling from ~4 TWh (~2%) today toward ~21.4 TWh (~9%) by 2035; Sydney DCs reach ~11% of available power (Melbourne ~8%) by 2030, and industry water demand triples from 5.5 GL to ~17 GL. Capital keeps flowing in - NextDC built a $6.6B war chest (incl. a $1B 100-year bond anchored by La Caisse), Firmus raised US$2B ($2.9B) at $230/share, and $150B+ is lined up in construction pipelines - while grid operators flag 5.7 GW of formal NSW connection agreements against an 11.4 GW "phantom" pipeline.',
+      sources: ['aiServers', 'concentratedSiting', 'afrAemo', 'afrGridNotReady', 'afrHunger', 'afrNextdcChest', 'afrNextdcBond', 'afrFirmus', 'abcDataCentres', 'climateCouncil', 'dcByte'],
+    },
   },
 
   equivalents: {
@@ -530,9 +572,11 @@ const DATA = {
       { text: 'The announced ~21.6 GW pipeline (DC Byte) and AEMO 5.4 GW connection queue overstate what gets built: "phantom demand" means many applications never materialise - NSW has 11.4 GW in the pipeline but only ~1.2 GW expected online by 2030 (Climate Council).', sources: ['dcByte', 'aemoDc', 'climateCouncil'] },
       { text: 'More than $150B is lined up for data-centre construction (~20% of non-residential construction), but much of the fit-out is imported so benefits largely flow offshore (ABC News).', sources: ['abcDataCentres', 'commbankDc'] },
       { text: 'If data-centre load is not matched with new renewables, wholesale prices could rise >20% by 2035 (26% NSW, 23% VIC); operators already voluntarily offset ~70% of energy use (Climate Council / CEFC).', sources: ['climateCouncil'] },
-      { text: 'Firmus Technologies raised US$2B to accelerate "AI factory" roll-out across Australia and Asia-Pacific, signalling continued large-scale investment (AFR).', sources: ['afrFirmus'] },
+      { text: 'Firmus Technologies raised US$2B ($2.9B) at $230/share to accelerate "AI factory" roll-out across Australia and Asia-Pacific, signalling continued large-scale investment (AFR).', sources: ['afrFirmus'] },
+      { text: 'Victoria data-centre demand almost doubled in a year (+94% to 187 MW; 30 facilities), while NSW rose +18% to 398 MW; AEMO expects data centres to consume one-eighth of current grid electricity within a decade (AFR).', sources: ['afrAemo'] },
+      { text: 'Financing is scaling up: NextDC expanded its war chest to $6.6B (incl. a $1B 100-year bond anchored by Canadian pension giant La Caisse) to fund a $15B Sydney build-out; Firmus raised US$2B and points to ~$150B+ in national construction pipelines (AFR).', sources: ['afrNextdcChest', 'afrNextdcBond', 'afrFirmus', 'abcDataCentres'] },
     ],
-    sources: ['industryAu', 'sbsNews', 'conversation', 'abcDataCentres', 'climateCouncil', 'afrFirmus'],
+    sources: ['industryAu', 'sbsNews', 'conversation', 'abcDataCentres', 'climateCouncil', 'afrFirmus', 'afrAemo', 'afrNextdcChest', 'afrNextdcBond'],
   },
 
   rightToolForTask: [
