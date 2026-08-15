@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Query Resource Calculator</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --panel2: #1c2330;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #9aa5b1;
+      --accent: #5b8ff9;
+      --red: #f28482;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    header h1 { font-size: 26px; letter-spacing: -0.02em; }
+    header h1 span { color: var(--accent); }
+    header p { color: var(--muted); font-size: 14px; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-radius: 8px 8px 0 0;
+      padding: 10px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--text);
+      background: var(--panel);
+      border-color: var(--border) var(--border) transparent var(--border);
+      border-bottom: 2px solid var(--accent);
+    }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 900px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .control { margin-bottom: 16px; }
+    .control label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .control select, .control input[type="range"] { width: 100%; }
+    select {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    input[type="range"] { accent-color: var(--accent); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+    .metric {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .metric .v { font-size: 22px; font-weight: 700; color: var(--accent); }
+    .metric .u { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .subcard { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 12px; }
+    .subcard h3 { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    td { color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .chart-box { position: relative; height: 280px; }
+    .chart-box.small { height: 220px; }
+    .eq-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .eq-grid { grid-template-columns: repeat(2, 1fr); } }
+    .eq-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+    .eq-val { display: block; font-size: 18px; font-weight: 700; color: var(--accent); }
+    .eq-label { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .notes ul { padding-left: 18px; }
+    .notes li { margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+    .source-cat { margin-bottom: 20px; }
+    .source-cat h3 { margin: 0 0 4px 0; font-size: 15px; }
+    .source-cat .hint { margin: 0 0 8px 0; font-size: 12px; }
+    .source-cat ul { padding-left: 18px; margin: 0; }
+    .source-cat li { margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+    footer { margin-top: 32px; color: var(--muted); font-size: 12px; }
+    footer ul { padding-left: 18px; margin-top: 8px; }
+    footer li { margin-bottom: 6px; }
+    .badge {
+      display: inline-block;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .cols { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+    @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+    .ex-row {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .ex-title { font-size: 14px; margin-bottom: 8px; }
+    .ex-model {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 1px 8px;
+      margin-left: 6px;
+    }
+    .ex-metrics { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .chip {
+      font-size: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px 10px;
+      color: var(--text);
+    }
+    .ex-eq { font-size: 12px; color: var(--muted); }
+    .compare-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .compare-cards { grid-template-columns: repeat(2, 1fr); } }
+    .expectation {
+      display: flex;
+      gap: 12px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .exp-n {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .expectation p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .ex-group {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin: 20px 0 10px 0;
+    }
+    .ex-group:first-of-type { margin-top: 0; }
+    .ex-src { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .ex-src a { font-size: 12px; }
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) { .method-grid { grid-template-columns: 1fr; } }
+    .method {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .method h3 { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .method p { font-size: 12px; color: var(--text); }
+    .method code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: var(--accent);
+      word-break: break-word;
+    }
+    .method .hint { font-size: 11px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>AI Query <span>Resource Calculator</span></h1>
+        <p>Energy, water, CO2 and cost of AI chatbot queries — grounded in published data, with links.</p>
+      </div>
+      <span class="badge">v2 · static · no data leaves your browser</span>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="tab-examples">Examples &amp; Comparisons</button>
+      <button class="tab-btn" data-tab="tab-calculator">Calculator</button>
+      <button class="tab-btn" data-tab="tab-outlook">Future dynamics</button>
+      <button class="tab-btn" data-tab="tab-sources">Sources &amp; Method</button>
+    </nav>
+
+    <section class="tab active" id="tab-examples">
+      <div class="card">
+        <h2>How these numbers are calculated</h2>
+        <div id="methodology"></div>
+      </div>
+
+      <div class="card">
+        <h2>Common AI queries and what they really cost</h2>
+        <p class="hint" style="margin-bottom:16px;">Fixed estimates use the Australian grid (~500 g CO2e/kWh, IEA) and a typical data-centre PUE of 1.35. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter.</p>
+        <div id="staticExamples"></div>
+      </div>
+
+      <div class="card">
+        <h2>Reference points (headline figures)</h2>
+        <div class="compare-cards" id="referenceCards"><div class="metric"><div class="v">…</div><div class="u">loading</div></div></div>
+        <p class="hint" id="promptWaterValue"></p>
+      </div>
+
+      <div class="card">
+        <h2>Right tool for the task</h2>
+        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job.</p>
+        <div style="overflow-x:auto;"><table id="toolTable"></table></div>
+      </div>
+
+      <div class="card">
+        <h2>Comparison to other activities</h2>
+        <p class="hint" style="margin-bottom:12px;">A single query is small, but your monthly AI use adds up. See the calculator's "equal to" panel for personalised equivalents. Context from sources:</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Activity / metric</th><th>Magnitude</th><th>Reference</th></tr></thead>
+            <tbody id="headlineBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-calculator">
+      <div class="cols">
+        <section class="card" id="calculator">
+          <h2>Calculator</h2>
+          <div class="control">
+            <label for="modelSelect">Model</label>
+            <select id="modelSelect"></select>
+            <div class="hint" id="modelMeta"></div>
+          </div>
+          <div class="control">
+            <label for="queryType">Query type (preset)</label>
+            <select id="queryType"></select>
+          </div>
+          <div class="control">
+            <label for="promptSlider" id="promptLabel">Prompt tokens</label>
+            <input type="range" id="promptSlider" min="10" max="32000" step="10" value="200" />
+          </div>
+          <div class="control">
+            <label for="outSlider" id="outLabel">Output tokens</label>
+            <input type="range" id="outSlider" min="10" max="8000" step="10" value="400" />
+          </div>
+          <div class="control">
+            <label for="queriesSlider" id="queriesLabel">Queries / day</label>
+            <input type="range" id="queriesSlider" min="1" max="500" step="1" value="30" />
+          </div>
+          <div class="control">
+            <label id="gridLabel">Grid CO2 intensity</label>
+            <div class="hint" style="margin-top:4px;">Fixed to Australia (~500 g CO2e/kWh, IEA). This dashboard bases all CO2 calculations on the Australian grid.</div>
+          </div>
+          <div class="control">
+            <label for="pueSlider" id="pueLabel">PUE</label>
+            <input type="range" id="pueSlider" min="1.00" max="2.00" step="0.01" value="1.35" />
+          </div>
+          <p class="hint">PUE (Power Usage Effectiveness) ~1.1–1.6 for modern facilities. Applies the data-center overhead to every query. Water is derived from energy via total WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI + 3.4 L/kWh indirect power-plant water, Patterns 2026).</p>
+        </section>
+
+        <section>
+          <div class="cards">
+            <div class="metric"><div class="v" id="vEnergy">–</div><div class="u">Energy / query</div></div>
+            <div class="metric"><div class="v" id="vCo2">–</div><div class="u">CO2e / query</div></div>
+            <div class="metric"><div class="v" id="vCost">–</div><div class="u">Cost / query</div></div>
+            <div class="metric"><div class="v" id="vWater">–</div><div class="u">Water / query</div></div>
+            <div class="metric"><div class="v" id="vGpu">–</div><div class="u">GPU time / query</div></div>
+          </div>
+
+          <div class="card">
+            <h2>Monthly footprint (30-day, your usage)</h2>
+            <div class="cards" style="grid-template-columns: repeat(3,1fr);">
+              <div class="metric"><div class="v" id="vMonthEnergy">–</div><div class="u">Energy / month</div></div>
+              <div class="metric"><div class="v" id="vMonthCo2">–</div><div class="u">CO2e / month</div></div>
+              <div class="metric"><div class="v" id="vMonthWater">–</div><div class="u">Water / month</div></div>
+            </div>
+            <div class="subcard">
+              <h3>Aggregated table</h3>
+              <div style="overflow-x:auto;"><table id="aggTable"></table></div>
+            </div>
+            <div class="subcard">
+              <h3>Compare this query to…</h3>
+              <select id="compareSelect"></select>
+              <div class="hint" id="compareResult" style="margin-top:8px;"></div>
+            </div>
+            <div class="subcard">
+              <h3>That's equal to… (per month)</h3>
+              <div class="eq-grid" id="equivalents"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Energy per query by model</h2>
+          <div class="chart-box"><div id="energyChart"></div></div>
+          <p class="hint">Bar values use the standard 200-in / 400-out token query. Headline reference bars from IEA (via SBS) and de Vries.</p>
+        </div>
+        <div class="card">
+          <h2>Cost per 1,000 queries by model</h2>
+          <div class="chart-box"><div id="costChart"></div></div>
+          <p class="hint">API list prices per 1M tokens.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Selected query energy split</h2>
+        <div class="chart-box small" style="max-width:420px;margin:0 auto;"><div id="breakdownChart"></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Example queries (computed with your grid + PUE)</h2>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Query</th><th>Model</th><th>tokens in/out</th>
+                <th>Energy</th><th>CO2e</th><th>Water</th><th>Cost</th><th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="examplesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-outlook">
+      <div class="card">
+        <h2>Macro context — AI and electricity</h2>
+        <p class="hint" style="margin-bottom:12px;">Data-centre demand is projected to roughly double by 2030, with AI driving a disproportionate share. Projections from IEA 2025 and 2026 research preprints.</p>
+        <div class="grid2">
+          <div class="chart-box"><div id="macroChart"></div></div>
+          <div class="notes" id="macroNotes"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Australian context: data centres &amp; AI infrastructure</h2>
+        <p class="hint" style="margin-bottom:12px;">Australia's federal government published five expectations for data-centre and AI-infrastructure developers (March 2026). They are guidance, not law.</p>
+        <div id="auExpectations"></div>
+        <div class="notes" id="auNotes" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-sources">
+      <div class="card">
+        <h2>Method &amp; caveats</h2>
+        <p class="hint" style="margin-bottom:12px;">
+          No public study measures a single end-user chatbot query end-to-end (provider data is proprietary).
+          Per-query energy here is derived from published per-token / per-inference measurements (2025–2026 papers)
+          combined with your inputs: prefill and decode energy per token, PUE overhead, Australian grid carbon
+          intensity (~500 g CO2e/kWh, IEA) and API list pricing. Water is derived from energy using the total
+          data-centre WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI; 3.4 L/kWh indirect power-plant water,
+          Patterns 2026), plus a fixed per-provider baseline. Figures are mid-range assumptions
+          — real values vary by hardware, model version, batching, context length and provider location. CO2 depends
+          heavily on grid mix; water depends on cooling technology and region. Treat results as order-of-magnitude estimates.
+        </p>
+        <p class="hint" style="margin-bottom:12px;">Sources are grouped by trust level, from peer-reviewed papers (most weight) down to vendor self-reports (treated as promotional).</p>
+        <ul id="sourceList"></ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>Built from the five task sources plus 2025–2026 technical papers. Every figure links to its source above.</p>
+    </footer>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="examples.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
