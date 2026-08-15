@@ -413,6 +413,7 @@ const DATA = {
     streamingHourWh: 100,
     ledBulbW: 9,
     treeGPerYear: 21000,
+    waterBottleMl: 500,
   },
 
   waterModel: {

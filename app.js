@@ -354,9 +354,11 @@ function buildExamplesScatter() {
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
       const cost = r.costUsd == null ? 'no list price' : fmtCostFixed(r.costUsd);
+      const costCell = r.costUsd == null ? 'no list price' : `${cost.v}${cost.u}`;
       return `<div class="tip-title">${p.ex.desc}</div>
-        <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u} · 💵 ${cost}</div>
+        <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u} · 💵 ${costCell}</div>
         <div class="tip-metrics">${exampleModelName(p.ex)}</div>
+        <div class="tip-note">${exampleEqText(p.ex, gridG, pue)}</div>
         ${p.ex.note ? `<div class="tip-note">${p.ex.note}</div>` : ''}`;
     },
   });
@@ -533,6 +535,15 @@ function exampleSourceLinks(ex) {
   return links ? `<div class="ex-src">Sources: ${links}</div>` : '';
 }
 
+function exampleEqText(ex, gridG, pue) {
+  const r = exampleResult(ex, gridG, pue).perQuery;
+  const eq = DATA.equivalents;
+  const bottlePct = ((r.waterMl / eq.waterBottleMl) * 100).toFixed(1);
+  const phonePct = ((r.wh / eq.smartphoneChargeWh) * 100).toFixed(1);
+  const coffeePct = ((r.gCO2e / eq.coffeeG) * 100).toFixed(1);
+  return `That's roughly ${bottlePct}% of a ${eq.waterBottleMl}&nbsp;ml bottle of water · ${phonePct}% of a phone charge · ${coffeePct}% of a cup of coffee`;
+}
+
 function renderExamples(gridG, pue, bodyId) {
   const rows = EXAMPLES.map((ex, i) => {
     const r = exampleResult(ex, gridG, pue).perQuery;
@@ -674,14 +685,10 @@ function renderStaticExamples() {
       const rows = groups[g]
         .map((ex) => {
           idx += 1;
-          const r = exampleResult(ex, gridG, pue).perQuery;
-          const bottlePct = ((r.waterMl / wm.promptWaterPer100WordsMl) * 100).toFixed(1);
-          const phonePct = ((r.wh / DATA.equivalents.smartphoneChargeWh) * 100).toFixed(1);
-          const coffeePct = ((r.gCO2e / DATA.equivalents.coffeeG) * 100).toFixed(1);
           return `<div class="ex-row">
       <div class="ex-title">${idx}. ${ex.desc} <span class="ex-model">${exampleModelName(ex)}</span></div>
       ${exampleChips(ex, gridG, pue)}
-      <div class="ex-eq">That's roughly ${bottlePct}% of a 519&nbsp;ml water bottle · ${phonePct}% of a phone charge · ${coffeePct}% of a cup of coffee</div>
+      <div class="ex-eq">${exampleEqText(ex, gridG, pue)}</div>
       ${exampleSourceLinks(ex)}
     </div>`;
         })
