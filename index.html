@@ -84,6 +84,34 @@
     .control { margin-bottom: 16px; }
     .control label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
     .control select, .control input[type="range"] { width: 100%; }
+    .scatter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .scatter-controls label { font-size: 13px; color: var(--muted); }
+    .scatter-controls select { margin-left: 6px; padding: 6px 8px; font-size: 13px; }
+    .pill {
+      display: inline-block;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .cost-dots { display: inline-flex; gap: 3px; margin-right: 6px; }
+    .cost-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); display: inline-block; }
+    .cost-dots .dot.on { background: var(--red); }
+    .cost-lbl { font-size: 12px; color: var(--muted); }
+    td.why { color: var(--muted); font-size: 12px; }
+    .note-src { display: block; margin-top: 2px; font-size: 11px; }
+    .notes ul { list-style: none; }
+    .notes li { font-size: 13px; color: var(--muted); margin-bottom: 10px; padding-left: 16px; position: relative; }
+    .notes li::before { content: '•'; position: absolute; left: 0; color: var(--accent); }
     select {
       background: var(--panel2);
       color: var(--text);
@@ -239,6 +267,7 @@
 
     <nav class="tabs">
       <button class="tab-btn active" data-tab="tab-examples">Examples &amp; Comparisons</button>
+      <button class="tab-btn" data-tab="tab-compare">Search &amp; AI comparison</button>
       <button class="tab-btn" data-tab="tab-calculator">Calculator</button>
       <button class="tab-btn" data-tab="tab-outlook">Future dynamics</button>
       <button class="tab-btn" data-tab="tab-sources">Sources &amp; Method</button>
@@ -247,15 +276,26 @@
     <section class="tab active" id="tab-examples">
       <div class="card">
         <h2>Right tool for the task</h2>
-        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job.</p>
-        <div style="overflow-x:auto;"><table id="toolTable"></table></div>
+        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job. Resource use: 0–3 dots (near-zero to high).</p>
+        <div style="overflow-x:auto;"><table id="toolTable">
+          <thead><tr><th>Task</th><th>Best tool</th><th>Resource use</th><th>Why</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
       </div>
 
       <div class="card">
         <h2>Common AI queries and what they really cost</h2>
-        <p class="hint" style="margin-bottom:16px;">Fixed estimates use the Australian grid (~500 g CO2e/kWh, IEA) and a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter.</p>
+        <p class="hint" style="margin-bottom:16px;">Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter, including the grid.</p>
+        <div class="scatter-controls">
+          <label>Bubble axis: <select id="scatterMetric">
+            <option value="usd">Cost (USD)</option>
+            <option value="co2">CO2e (g)</option>
+            <option value="water">Water (ml)</option>
+          </select></label>
+          <label>Grid: <select id="gridSelectExamples"></select></label>
+        </div>
         <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
-        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs cost (USD), size = water (ml), colour = task group. Hover a bubble for details. Dashed bubbles have no public list price (image/video generation) and are placed at the bottom of the cost axis — their energy and water are still shown in the cards below.</p>
+        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs the selected y-axis, size = water (ml), colour = task group. Hover a bubble for details. Energy, CO2e, water and cost for every example are shown in the cards below.</p>
         <div id="staticExamples"></div>
       </div>
 
@@ -265,9 +305,14 @@
       </div>
 
       <div class="card">
+        <h2>Training &amp; embodied footprint — the bigger picture</h2>
+        <p class="hint" style="margin-bottom:12px;">A single query is only the inference (running) part. Building a model — and the hardware it runs on — carries its own footprint. Per-query inference can still dominate total energy use because it happens billions of times.</p>
+        <div class="compare-cards" id="trainingCards"></div>
+      </div>
+
+      <div class="card">
         <h2>Reference points (headline figures)</h2>
         <div class="compare-cards" id="referenceCards"><div class="metric"><div class="v">…</div><div class="u">loading</div></div></div>
-        <p class="hint" id="promptWaterValue"></p>
       </div>
 
       <div class="card">
@@ -277,6 +322,35 @@
           <table>
             <thead><tr><th>Activity / metric</th><th>Magnitude</th><th>Reference</th></tr></thead>
             <tbody id="headlineBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-compare">
+      <div class="card">
+        <h2>Web search vs AI — which tool for which job?</h2>
+        <p class="hint" style="margin-bottom:16px;">A single search is a fraction of a single chat query's energy, but both are tiny. The right choice balances task, accuracy and footprint. Per-query figures below are published estimates; Ecosia reports no per-query figure (it publishes audited aggregates).</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Tool</th><th>Energy / query</th><th>CO2e / query</th><th>Cost / query</th><th>Note</th><th>Source</th></tr></thead>
+            <tbody id="compareBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ecosia: search + AI on renewable energy</h2>
+        <div class="notes" id="ecosiaNotes" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="card">
+        <h2>What the headlines say</h2>
+        <p class="hint" style="margin-bottom:12px;">Reference figures used across this dashboard:</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Reference</th><th>Magnitude</th><th>Source</th></tr></thead>
+            <tbody id="compareHeadlineBody"></tbody>
           </table>
         </div>
       </div>
@@ -309,7 +383,8 @@
           </div>
           <div class="control">
             <label id="gridLabel">Grid CO2 intensity</label>
-            <div class="hint" style="margin-top:4px;">Fixed to Australia (~500 g CO2e/kWh, IEA). This dashboard bases all CO2 calculations on the Australian grid.</div>
+            <select id="gridSelect"></select>
+            <div class="hint" id="gridHint"></div>
           </div>
           <div class="control">
             <label for="pueSlider" id="pueLabel">PUE</label>
@@ -365,12 +440,8 @@
       </div>
 
       <div class="card">
-        <h2>Selected query energy split</h2>
-        <div class="chart-box small" style="max-width:420px;margin:0 auto;"><div id="breakdownChart"></div></div>
-      </div>
-
-      <div class="card">
-        <h2>Example queries (computed with your grid + PUE)</h2>
+        <h2>Example queries — recomputed live with your grid + PUE</h2>
+        <p class="hint" style="margin-bottom:12px;">Unlike the fixed cards on the <a href="#" data-goto="tab-examples">Examples tab</a>, this table recomputes with the selected grid (<span id="examplesGridBadge">Australia ~500 g CO2e/kWh</span>) and your PUE slider. Change any parameter above and watch every row update.</p>
         <div style="overflow-x:auto;">
           <table>
             <thead>
@@ -414,6 +485,12 @@
           </table>
         </div>
         <div class="notes" id="auNotes" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="card">
+        <h2>Australia's data-centre build-out</h2>
+        <p class="hint" style="margin-bottom:12px;">Operational capacity ~1.4 GW now, forecast ~3.2 GW by 2030, inside a ~21.6 GW announced pipeline (Data Centres Australia / DC Byte). AEMO disclosed 5.4 GW across 11 projects in its transmission connection queue (June 2026); CommBank estimates a ~6 GW potential pipeline worth ~$150B by 2030.</p>
+        <div class="chart-box small" style="max-width:520px;margin:0 auto;"><div id="auPipelineChart"></div></div>
       </div>
     </section>
 

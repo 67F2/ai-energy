@@ -168,6 +168,20 @@ const SOURCES = {
     cat: 'vendor',
     note: 'GPT-5.6 line (per 1M tokens): Sol $5/$30 (1.05M context, cutoff Feb 2026), Terra $2/$12, Luna $0.20/$1.20. GPT-5.4/5.5 also listed.',
   },
+  gptImagePrice: {
+    label: 'GPT Image API pricing',
+    ref: 'OpenAI / costgoat per-image calculators',
+    url: 'https://costgoat.com/pricing/openai-images',
+    cat: 'vendor',
+    note: 'Per 1024x1024 image: GPT Image 1 low ~$0.011, medium ~$0.042, high ~$0.167; Mini $0.005-$0.052. This dashboard uses the medium tier (~$0.04/image).',
+  },
+  videoPrice: {
+    label: 'AI video generation API pricing',
+    ref: 'cometapi / fluxnote / devtk 2026 comparisons',
+    url: 'https://www.cometapi.com/ai-video-api-pricing/',
+    cat: 'vendor',
+    note: 'Per-second rates $0.03-$0.70 (Kling ~$0.07/s, Sora ~$0.10/s, Veo ~$0.40/s). A ~5-8 s clip is roughly $0.5-$2; this dashboard uses ~$1.00/clip as a mid-range estimate.',
+  },
   anthropicPrice: {
     label: 'Anthropic API pricing',
     ref: 'Anthropic',
@@ -185,6 +199,20 @@ const SOURCES = {
   deepseekPrice: { label: 'DeepSeek API pricing', ref: 'DeepSeek', url: 'https://api-docs.deepseek.com/quick_start/pricing', cat: 'vendor', note: 'List prices per 1M tokens.' },
   epaEg: { label: 'EPA eGRID: U.S. grid CO2 intensity', ref: 'EPA eGRID, 2024', url: 'https://www.epa.gov/egrid', cat: 'institution', note: 'U.S. average ~386 g CO2e/kWh.' },
   ieaGrid: { label: 'Electricity emissions intensity', ref: 'IEA', url: 'https://www.iea.org/data-and-statistics', cat: 'institution', note: 'Australia ~500 g CO2e/kWh (IEA). The dashboard bases all CO2 calculations on this Australian grid intensity.' },
+  ukGrid: {
+    label: 'UK grid carbon intensity',
+    ref: 'Energy Dashboard / Hoare Lea, 2025',
+    url: 'https://www.energydashboard.co.uk/insights/2025-review',
+    cat: 'institution',
+    note: 'Great Britain 2025 average ~128 g CO2e/kWh (Energy Dashboard); Hoare Lea 129 gCO2e/kWh (Scope 2, generation-based).',
+  },
+  euGrid: {
+    label: 'EU electricity generation intensity',
+    ref: 'EEA, 2024 early estimate',
+    url: 'https://www.eea.europa.eu/en/analysis/indicators/greenhouse-gas-emission-intensity-of-1',
+    cat: 'institution',
+    note: 'EU-27 power-generation intensity fell ~11% in 2024 (EEA early estimate) to ~250 g CO2e/kWh; ranges widely by member state (e.g. France ~51, Poland ~847).',
+  },
   ecosiaHome: {
     label: 'Ecosia - the search engine that plants trees',
     ref: 'Ecosia GmbH',
@@ -248,9 +276,44 @@ const SOURCES = {
     cat: 'journalism',
     note: 'Only Meta tallies indirect water used at the power plants feeding its data centres; no legal obligation to report full scope. US indirect water consumption ~12x the direct figure (Lawrence Berkeley National Laboratory, 2024). Companies spending ~$1T on AI infrastructure.',
   },
+  dcByte: {
+    label: 'Australian Data Centre Forecast Report',
+    ref: 'Data Centres Australia & DC Byte, April 2026',
+    url: 'https://www.dcbyte.com/industry-reports/australian-data-centre-forecast-report/',
+    cat: 'journalism',
+    note: 'Operational capacity ~1.4 GW now, forecast to ~3.2 GW by 2030, inside a ~21.6 GW announced pipeline.',
+  },
+  aemoDc: {
+    label: 'AEMO discloses 5.4 GW Australian data centre pipeline',
+    ref: 'Certified Strategic, June 2026',
+    url: 'https://certifiedstrategic.com/insights/aemo-5-4gw-australian-data-centre-pipeline-june-2026',
+    cat: 'journalism',
+    note: 'AEMO first disclosure of data-centre capacity in the transmission connection queue: 11 projects, 5.4 GW, ~60% NSW / 40% Victoria.',
+  },
+  commbankDc: {
+    label: "Australia's data centre boom: a $150 billion investment",
+    ref: 'CommBank newsroom, August 2026',
+    url: 'https://www.commbank.com.au/articles/newsroom/2026/08/australias-data-centre-boom.html',
+    cat: 'journalism',
+    note: '~6 GW potential pipeline, roughly 4x the operational capacity at end-2025; build-out could total ~$150B by 2030 and become the dominant driver of business investment growth.',
+  },
+  nineDc: {
+    label: 'Map exposes bold data centre plan for Sydney and Melbourne',
+    ref: 'Nine News, June 2026',
+    url: 'https://www.nine.com.au/australia-news/map-exposes-australia-s-bold-plan-to-become-the-data-centre-capital-of-the-world-20260615-p606xw.html',
+    cat: 'journalism',
+    note: 'Over 160 data-centre facilities already operating across every state and territory; dozens more planned or in development, concentrated on Sydney and Melbourne boundaries.',
+  },
 };
 
 const DATA = {
+  grids: [
+    { id: 'au', label: 'Australia (avg)', gCO2ePerKWh: 500, source: 'ieaGrid' },
+    { id: 'us', label: 'United States (avg)', gCO2ePerKWh: 386, source: 'epaEg' },
+    { id: 'uk', label: 'United Kingdom (avg)', gCO2ePerKWh: 128, source: 'ukGrid' },
+    { id: 'eu', label: 'European Union (avg)', gCO2ePerKWh: 250, source: 'euGrid' },
+  ],
+
   gridIntensity: {
     label: 'Australia (avg)',
     gCO2ePerKWh: 500,
@@ -348,6 +411,13 @@ const DATA = {
     { value: '~0.3 Wh', label: 'a Google search (de Vries)', source: 'devries' },
   ],
 
+  trainingEmbodied: [
+    { value: '~284 t CO2e', label: 'training a large transformer (GPT-3-era)', source: 'strubell2019' },
+    { value: '~700,000 L', label: 'water to train GPT-3 (estimated)', source: 'thirsty' },
+    { value: '~20% of lifecycle', label: 'typical share of embodied (hardware) carbon in a model footprint', source: 'llmcarbon' },
+    { value: '80-90%', label: 'share of AI energy spent on inference, not training (UNU-INWEH)', source: 'unricAi' },
+  ],
+
   headlineRefs: [
     { label: 'Google search (de Vries 2023)', value: 0.3, unit: 'Wh', source: 'devries' },
     { label: 'ChatGPT query (IEA via SBS, 2024)', value: 2.9, unit: 'Wh', source: 'sbsNews' },    { label: 'ChatGPT query (Altman counter-claim)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
@@ -388,21 +458,21 @@ const DATA = {
     ],
     waterBenchmark2030TrillionL: 9.3,
     macroWaterNotes: [
-      'Derived global data-centre water = electricity (TWh) x total WUE (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030).',
-      'UNU-INWEH projects a much larger ~9.3 trillion L by 2030 once AI-specific footprint growth is included; the derived line is therefore a conservative lower bound.',
-      'AI water footprint 2025: 312.5-764.6B L, roughly the entire global annual bottled-water market (Patterns 2026).',
-      'Indirect (power-plant) water dominates and is under-reported: ~3.4 L/kWh actual vs ~1.04 L/kWh IEA-implied; only Meta reports it (Patterns 2026 / WSJ).',
+      { text: 'Derived global data-centre water = electricity (TWh) x total WUE (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030).', sources: ['cellReports', 'eesiWater'] },
+      { text: 'UNU-INWEH projects a much larger ~9.3 trillion L by 2030 once AI-specific footprint growth is included; the derived line is therefore a conservative lower bound.', sources: ['unricAi'] },
+      { text: 'AI water footprint 2025: 312.5-764.6B L, roughly the entire global annual bottled-water market (Patterns 2026).', sources: ['cellReports'] },
+      { text: 'Indirect (power-plant) water dominates and is under-reported: ~3.4 L/kWh actual vs ~1.04 L/kWh IEA-implied; only Meta reports it (Patterns 2026 / WSJ).', sources: ['cellReports', 'wsjWater'] },
     ],
     macroNotes: [
-      'Global data-center electricity projected to roughly double from ~415 TWh (2024) to ~945 TWh (2030); AI workloads drive a disproportionate share (IEA 2025, arXiv:2601.06063).',
-      'Six leading AI firms alone: ~118 TWh (2024) rising to 239-295 TWh (2030), concentrated in North America, Western Europe and Asia-Pacific (arXiv:2604.06198).',
-      'AI workloads could account for 50-70% of data-center electricity by 2030 (modeling assumption, arXiv:2506.17284).',
-      'Edge-resident inference for 1B daily users could save ~19 TWh/yr and ~7.3 Mt CO2 vs centralized practice (arXiv:2608.02608).',
-      'US AI servers: +200-300B gallons of water/yr and +24-44 Mt CO2e by 2030 (arXiv:2601.06063).',
-      'UNU-INWEH: inference, not training, is ~80-90% of AI energy use; ChatGPT alone ~2.5B prompts/day ~383 GWh/yr. 2030 water footprint ~9.3 trillion L (UNRIC).',
-      'Reported data-centre water undercounts: US indirect water (at the power plants) is ~12x the direct figure, and only Meta reports it (WSJ / LBNL 2024).',
-      'Indirect (electricity-embedded) water is the dominant, undercounted component: IEA-implied ~1.04 L/kWh vs ~3.40 L/kWh actual (Apple+Meta+Google US, 2023); Meta ~3.92 L/kWh, Google ~2.97 L/kWh (Patterns 2026).',
-      'AI is ~15-20% of total data-center electricity at end-2024, with AI power demand at 9.4 GW rising to 23 GW through 2025 (Patterns 2026).',
+      { text: 'Global data-center electricity projected to roughly double from ~415 TWh (2024) to ~945 TWh (2030); AI workloads drive a disproportionate share (IEA 2025, arXiv:2601.06063).', sources: ['ieaEnergyAI', 'aiServers'] },
+      { text: 'Six leading AI firms alone: ~118 TWh (2024) rising to 239-295 TWh (2030), concentrated in North America, Western Europe and Asia-Pacific (arXiv:2604.06198).', sources: ['concentratedSiting'] },
+      { text: 'AI workloads could account for 50-70% of data-center electricity by 2030 (modeling assumption, arXiv:2506.17284).', sources: ['ieaEnergyAI'] },
+      { text: 'Edge-resident inference for 1B daily users could save ~19 TWh/yr and ~7.3 Mt CO2 vs centralized practice (arXiv:2608.02608).', sources: ['edgeNative'] },
+      { text: 'US AI servers: +200-300B gallons of water/yr and +24-44 Mt CO2e by 2030 (arXiv:2601.06063).', sources: ['aiServers'] },
+      { text: 'UNU-INWEH: inference, not training, is ~80-90% of AI energy use; ChatGPT alone ~2.5B prompts/day ~383 GWh/yr. 2030 water footprint ~9.3 trillion L (UNRIC).', sources: ['unricAi'] },
+      { text: 'Reported data-centre water undercounts: US indirect water (at the power plants) is ~12x the direct figure, and only Meta reports it (WSJ / LBNL 2024).', sources: ['wsjWater'] },
+      { text: 'Indirect (electricity-embedded) water is the dominant, undercounted component: IEA-implied ~1.04 L/kWh vs ~3.40 L/kWh actual (Apple+Meta+Google US, 2023); Meta ~3.92 L/kWh, Google ~2.97 L/kWh (Patterns 2026).', sources: ['cellReports', 'wsjWater'] },
+      { text: 'AI is ~15-20% of total data-center electricity at end-2024, with AI power demand at 9.4 GW rising to 23 GW through 2025 (Patterns 2026).', sources: ['cellReports'] },
     ],
   },
 
@@ -435,22 +505,22 @@ const DATA = {
       { n: 5, title: 'Strengthen research, innovation and local capability', desc: 'Affordable compute access for start-ups, researchers and not-for-profits.' },
     ],
     notes: [
-      'Guidelines are expectations, not law - experts warn companies could "cut corners" on energy and water (SBS News).',
-      'Australia data centres use ~2% of grid-supplied electricity; projected to triple to ~6% by 2030 (SBS News).',
-      'Australia has the second-largest data centre construction pipeline in the world, after the US (SBS News).',
-      'Federal agencies require NABERS 5-star rating for hosted data centres; no such requirement for private builds (SBS News).',
-      'The government will deprioritise non-genuine proposals that congest approval pathways (industry.gov.au).',
+      { text: 'Guidelines are expectations, not law - experts warn companies could "cut corners" on energy and water (SBS News).', sources: ['sbsNews'] },
+      { text: 'Australia data centres use ~2% of grid-supplied electricity; projected to triple to ~6% by 2030 (SBS News).', sources: ['sbsNews'] },
+      { text: 'Australia has the second-largest data centre construction pipeline in the world, after the US (SBS News).', sources: ['sbsNews'] },
+      { text: 'Federal agencies require NABERS 5-star rating for hosted data centres; no such requirement for private builds (SBS News).', sources: ['sbsNews'] },
+      { text: 'The government will deprioritise non-genuine proposals that congest approval pathways (industry.gov.au).', sources: ['industryAu'] },
     ],
     sources: ['industryAu', 'sbsNews', 'conversation'],
   },
 
   rightToolForTask: [
-    { task: 'A quick factual question', best: 'Web search / search engine', why: 'AI chatbots use ~10x the energy of a Google search per query (IEA via SBS).' },
-    { task: 'A short, simple sentence polish', best: 'Your own brain / spell-checker', why: 'Large-truck-for-one-envelope: outcome identical, far less compute.' },
-    { task: 'Math or calculation', best: 'Calculator / spreadsheet', why: 'Deterministic tools give exact answers with negligible resource use.' },
-    { task: 'A one-off summarisation of short text', best: 'Small model / quick AI answer', why: 'Smaller models use far less energy than frontier flagship models.' },
-    { task: 'Code review, long analysis, creative draft', best: 'Frontier AI model', why: 'The most justified use of the most resource-intensive models.' },
-    { task: 'Images, audio, video generation', best: 'Avoid unless necessary', why: 'Media generation typically requires far more compute than text.' },
+    { task: 'A quick factual question', best: 'Web search / search engine', cost: 1, why: 'AI chatbots use ~10x the energy of a Google search per query (IEA via SBS).' },
+    { task: 'A short, simple sentence polish', best: 'Your own brain / spell-checker', cost: 0, why: 'Large-truck-for-one-envelope: outcome identical, far less compute.' },
+    { task: 'Math or calculation', best: 'Calculator / spreadsheet', cost: 0, why: 'Deterministic tools give exact answers with negligible resource use.' },
+    { task: 'A one-off summarisation of short text', best: 'Small model / quick AI answer', cost: 2, why: 'Smaller models use far less energy than frontier flagship models.' },
+    { task: 'Code review, long analysis, creative draft', best: 'Frontier AI model', cost: 3, why: 'The most justified use of the most resource-intensive models.' },
+    { task: 'Images, audio, video generation', best: 'Avoid unless necessary', cost: 3, why: 'Media generation typically requires far more compute than text.' },
   ],
 
   baselines: [

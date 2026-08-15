@@ -2,6 +2,10 @@ const $ = (id) => document.getElementById(id);
 
 const modelById = (id) => DATA.models.find((m) => m.id === id);
 const sourceById = (id) => SOURCES[id];
+const src = (id) => {
+  const s = sourceById(id);
+  return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : id;
+};
 
 function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   const jIn = promptTok * model.jPerInTok;
@@ -112,8 +116,9 @@ function niceMax(v) {
 function svgBarChart(id, labels, values, colors) {
   const host = $(id);
   host.innerHTML = '';
+  const maxLines = Math.max.apply(null, labels.map((l) => String(l).split('\n').length));
   const W = 560, H = 250;
-  const padL = 48, padB = 48, padT = 14, padR = 10;
+  const padL = 48, padB = 22 + maxLines * 13, padT = 14, padR = 10;
   const max = niceMax(Math.max.apply(null, values) * 1.1);
   const innerW = W - padL - padR, innerH = H - padT - padB;
   const n = values.length, slot = innerW / n, barW = Math.min(slot * 0.58, 52);
@@ -129,48 +134,16 @@ function svgBarChart(id, labels, values, colors) {
   values.forEach((v, i) => {
     const h = innerH * v / max, x = padL + slot * i + (slot - barW) / 2, y = padT + innerH - h;
     svg.appendChild(svgEl('rect', { x, y, width: barW, height: Math.max(h, 2), rx: 3, fill: colors[i] || '#5b8ff9' }));
-    const vtx = svgEl('text', { x: x + barW / 2, y: y - 6, 'text-anchor': 'middle', fill: '#c9d1d9', 'font-size': 11 });
+    const vtx = svgEl('text', { x: x + barW / 2, y: Math.max(y - 4, padT + 8), 'text-anchor': 'middle', fill: '#c9d1d9', 'font-size': 11 });
     vtx.textContent = fmtNum(v);
     svg.appendChild(vtx);
-    String(labels[i]).split('\n').forEach((ln, j) => {
-      const ltx = svgEl('text', { x: x + barW / 2, y: padT + innerH + 15 + j * 12, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 10 });
-      ltx.textContent = ln;
+    const lines = String(labels[i]).split('\n');
+    const maxW = Math.min(slot * 0.92, 90);
+    lines.forEach((ln, j) => {
+      const ltx = svgEl('text', { x: x + barW / 2, y: padT + innerH + 16 + j * 13, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 9 });
+      ltx.textContent = ln.length > 18 ? ln.slice(0, 17) + '…' : ln;
       svg.appendChild(ltx);
     });
-  });
-  host.appendChild(svg);
-}
-
-function svgDoughnut(id, labels, values, colors) {
-  const host = $(id);
-  host.innerHTML = '';
-  const W = 360, H = 220;
-  const cx = 118, cy = H / 2, r = 62;
-  const total = values.reduce((a, b) => a + b, 0) || 1;
-  const C = 2 * Math.PI * r;
-  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: '100%', preserveAspectRatio: 'xMidYMid meet' });
-  svg.appendChild(svgEl('circle', { cx, cy, r, fill: 'none', stroke: 'rgba(255,255,255,0.07)', 'stroke-width': 26 }));
-  let acc = 0;
-  values.forEach((v, i) => {
-    const frac = v / total;
-    const arc = svgEl('circle', { cx, cy, r, fill: 'none', stroke: colors[i], 'stroke-width': 26, 'stroke-dasharray': `${frac * C} ${C}`, 'stroke-dashoffset': `${-acc * C}`, transform: `rotate(-90 ${cx} ${cy})` });
-    svg.appendChild(arc);
-    acc += frac;
-  });
-  const pct = Math.round((values[0] / total) * 100);
-  const ct = svgEl('text', { x: cx, y: cy - 4, 'text-anchor': 'middle', fill: '#c9d1d9', 'font-size': 15 });
-  ct.textContent = `${pct}%`;
-  svg.appendChild(ct);
-  const cu = svgEl('text', { x: cx, y: cy + 14, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11 });
-  cu.textContent = 'prefill';
-  svg.appendChild(cu);
-  const lx = cx + r + 30;
-  labels.forEach((l, i) => {
-    const ly = cy - 20 + i * 26;
-    svg.appendChild(svgEl('rect', { x: lx, y: ly - 9, width: 12, height: 12, rx: 2, fill: colors[i] }));
-    const t = svgEl('text', { x: lx + 18, y: ly, fill: '#c9d1d9', 'font-size': 11 });
-    t.textContent = `${l}: ${fmtNum(values[i])} J`;
-    svg.appendChild(t);
   });
   host.appendChild(svg);
 }
@@ -268,10 +241,10 @@ function svgScatterChart(id, points, opts = {}) {
     svg.appendChild(t);
   }
   const xt = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11 });
-  xt.textContent = 'Energy per query (Wh, log scale)';
+  xt.textContent = opts.xLabel || 'Energy per query (Wh, log scale)';
   svg.appendChild(xt);
   const yt = svgEl('text', { x: 14, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11, transform: `rotate(-90 14 ${padT + innerH / 2})` });
-  yt.textContent = 'Cost per query (USD, log scale)';
+  yt.textContent = opts.yLabel || 'Cost per query (USD, log scale)';
   svg.appendChild(yt);
 
   let tip = null;
@@ -324,32 +297,42 @@ function svgScatterChart(id, points, opts = {}) {
     ly += 20;
   });
   const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 10 });
-  cap.textContent = 'Bubble = water';
+  cap.textContent = opts.sizeLabel || 'Bubble = water';
   svg.appendChild(cap);
-  const cap2 = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
-  cap2.textContent = 'Dashed = no list price';
-  svg.appendChild(cap2);
+  if (points.some((p) => p.hollow)) {
+    const cap2 = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
+    cap2.textContent = 'Dashed = no list price';
+    svg.appendChild(cap2);
+  }
 
   host.appendChild(svg);
 }
 
-function buildExamplesScatter() {
+const SCATTER_METRICS = {
+  usd: { label: 'Cost per query (USD, log scale)', y: (r) => (r.costUsd != null ? r.costUsd : 0.00005), hollow: (r) => r.costUsd == null },
+  co2: { label: 'CO2e per query (g, log scale)', y: (r) => r.gCO2e, hollow: () => false },
+  water: { label: 'Water per query (ml, log scale)', y: (r) => r.waterMl, hollow: () => false },
+};
+
+function buildExamplesScatter(metricKey = 'usd') {
   const gridG = DATA.gridIntensity.gCO2ePerKWh;
   const pue = 1.35;
+  const metric = SCATTER_METRICS[metricKey] || SCATTER_METRICS.usd;
   const points = EXAMPLES.map((ex) => {
     const r = exampleResult(ex, gridG, pue).perQuery;
     return {
       x: r.wh,
-      y: r.costUsd != null ? r.costUsd : 0.00005,
+      y: metric.y(r),
       size: r.waterMl,
       color: GROUP_COLORS[ex.group] || '#adb5bd',
       group: ex.group || 'Other',
       label: (EXAMPLES.indexOf(ex) + 1).toString(),
-      hollow: r.costUsd == null,
+      hollow: metric.hollow(r),
       ex,
     };
   });
   svgScatterChart('examplesScatter', points, {
+    yLabel: metric.label,
     tip: (p) => {
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
@@ -387,17 +370,6 @@ function buildCostChart() {
   svgBarChart('costChart', labels, values, DATA.models.map(() => '#5b8ff9'));
 }
 
-function buildBreakdownChart(model, promptTok, outTok, pue) {
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
-  const r = compute(model, promptTok, outTok, 1, gridG, pue);
-  svgDoughnut(
-    'breakdownChart',
-    ['Prefill (input)', 'Decode (output)'],
-    [r.perQuery.jIn * pue, r.perQuery.jOut * pue],
-    ['#5b8ff9', '#f28482']
-  );
-}
-
 function buildMacroChart() {
   const labels = DATA.macro.globalDcElectricity.map((d) => d.year);
   const g = DATA.macro.globalDcElectricity.map((d) => d.tWh);
@@ -420,7 +392,7 @@ function buildMacroWaterChart() {
 }
 
 function renderMacroWaterNotes() {
-  $('macroWaterNotes').innerHTML = `<ul>${(DATA.macro.macroWaterNotes || []).map((n) => `<li>${n}</li>`).join('')}</ul>`;
+  $('macroWaterNotes').innerHTML = noteListHtml(DATA.macro.macroWaterNotes || []);
 }
 
 function renderEquivalents(monthlyWh, monthlyCo2G) {
@@ -569,6 +541,54 @@ function renderExamples(gridG, pue, bodyId) {
   $(bodyId).innerHTML = rows;
 }
 
+function renderCompareTab() {
+  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const pue = 1.35;
+  const fmtCells = (wh, gCO2e, costUsd) => {
+    const e = wh == null ? '—' : `${fmtEnergyFixed(wh).v} ${fmtEnergyFixed(wh).u}`;
+    const c = gCO2e == null ? '—' : `${fmtCo2Fixed(gCO2e).v} ${fmtCo2Fixed(gCO2e).u}`;
+    const cost = costUsd == null ? '—' : fmtCostFixed(costUsd).v + fmtCostFixed(costUsd).u;
+    return `<td>${e}</td><td>${c}</td><td>${cost}</td>`;
+  };
+  const srcCell = (id) => {
+    const s = sourceById(id);
+    return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+  };
+
+  const rows = [
+    `<tr><td>Google search</td>${fmtCells(0.3, 0.3 * gridG / 1000, null)}<td>~0.3 Wh per search (de Vries 2023), since disputed as an overestimate. Baseline for comparison.</td><td>${srcCell('devries')}</td></tr>`,
+    `<tr><td>ChatGPT query (IEA via SBS)</td>${fmtCells(2.9, 2.9 * gridG / 1000, null)}<td>~2.9 Wh per query (~10x a Google search); Altman counter-claim ~0.34 Wh.</td><td>${srcCell('sbsNews')}</td></tr>`,
+    `<tr><td>Ecosia search</td>${fmtCells(null, null, null)}<td>No per-query figure published. Runs on 100% renewable energy; audited organizational footprint ~102 t CO2/yr.</td><td>${srcCell('ecosiaRegen')} · ${srcCell('ecosiaFactCheck')}</td></tr>`,
+    `<tr><td>Ecosia AI (chat / overviews)</td>${fmtCells(null, null, null)}<td>Optional and switchable off. Uses smaller, efficient models via a European provider; Ecosia estimates it raises its CO2 footprint ~5%.</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
+    `<tr><td>AI image generation</td>${fmtCells(2.9, 2.9 * gridG / 1000, 0.04)}<td>~2.9 Wh/image (Power Hungry). Cost = GPT Image 1 medium tier.</td><td>${srcCell('powerHungry')} · ${srcCell('gptImagePrice')}</td></tr>`,
+    `<tr><td>AI video clip (~5-8 s)</td>${fmtCells(90, 90 * gridG / 1000, 1.0)}<td>~90 Wh/clip (WAN2.1, 81 frames). ~30x image generation. Cost = mid-range API estimate.</td><td>${srcCell('videoEnergy')} · ${srcCell('videoPrice')}</td></tr>`,
+  ].join('');
+  $('compareBody').innerHTML = rows;
+
+  const ecosiaNotes = [
+    { text: 'Ecosia is a B-Corp search engine that funds tree planting from profits; it claims to produce about twice as much renewable energy as its searches use.', sources: ['ecosiaHome'] },
+    { text: 'Ecosia claims each search "removes 1 kg of CO2" through tree-planting profits (Regeneration Report).', sources: ['ecosiaRegen'] },
+    { text: 'AI Overviews + AI Chat launched December 2025; both optional and switchable off.', sources: ['ecosiaAi', 'ecosiaAiFree'] },
+    { text: 'Ecosia selects and tracks models with the AI Energy Score (Hugging Face) and Ecologits; it avoids video generation and uses smaller models, so its AI footprint is far below mainstream alternatives.', sources: ['ecosiaAi', 'ecosiaAiImproved'] },
+    { text: 'Ecosia publishes aggregate totals (~102 t CO2/yr) but no per-query energy or CO2 figure for search or AI; fact-checkers call for per-query disclosure.', sources: ['ecosiaFactCheck'] },
+  ];
+  $('ecosiaNotes').innerHTML = noteListHtml(ecosiaNotes);
+
+  const refs = [
+    { label: 'Google search (de Vries 2023)', value: 0.3, unit: 'Wh', source: 'devries' },
+    { label: 'ChatGPT query (IEA via SBS, 2024)', value: 2.9, unit: 'Wh', source: 'sbsNews' },
+    { label: 'ChatGPT query (Altman counter-claim)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
+    { label: 'AI image vs text classification (UNU-INWEH 2026)', value: 1450, unit: 'x', source: 'unricAi' },
+    { label: 'AI image water footprint (UNU-INWEH 2026)', value: 29, unit: 'ml', source: 'unricAi' },
+  ];
+  $('compareHeadlineBody').innerHTML = refs
+    .map((h) => {
+      const s = sourceById(h.source);
+      return `<tr><td>${h.label}</td><td>${h.value} ${h.unit}</td><td><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a></td></tr>`;
+    })
+    .join('');
+}
+
 function renderHeadlineRefs() {
   const rows = DATA.headlineRefs
     .map((h) => {
@@ -610,10 +630,6 @@ function renderSources() {
 }
 
 function renderMethodology() {
-  const src = (id) => {
-    const s = sourceById(id);
-    return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : id;
-  };
   const wm = DATA.waterModel;
   const wueTotal = wm.wueLPerKWh + (wm.indirectLPerKWh || 0);
   const pue = 1.35;
@@ -630,7 +646,7 @@ function renderMethodology() {
       <div class="method">
         <h3>🌡️ CO2</h3>
         <p><code>g CO2e = kWh × ${gridG} g/kWh</code></p>
-        <p class="hint">Australian average grid intensity, ${gridG} g CO2e/kWh (${src('ieaGrid')}). Multiply energy by grid carbon intensity; real value depends on grid mix and time of day.</p>
+        <p class="hint">Selected grid average intensity, ${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}). Multiply energy by grid carbon intensity; real value depends on grid mix and time of day.</p>
       </div>
       <div class="method">
         <h3>💧 Water</h3>
@@ -649,12 +665,21 @@ function renderMethodology() {
 }
 
 function renderMacroNotes() {
-  $('macroNotes').innerHTML = `<ul>${DATA.macro.macroNotes.map((n) => `<li>${n}</li>`).join('')}</ul>`;
+  $('macroNotes').innerHTML = noteListHtml(DATA.macro.macroNotes || []);
 }
 
 function renderRightToolForTask() {
+  const costLabels = ['Near-zero', 'Low', 'Moderate', 'High'];
   const rows = DATA.rightToolForTask
-    .map((t) => `<tr><td>${t.task}</td><td><strong>${t.best}</strong></td><td>${t.why}</td></tr>`)
+    .map((t) => {
+      const dots = [0, 1, 2].map((i) => `<i class="dot ${i < t.cost ? 'on' : ''}"></i>`).join('');
+      return `<tr>
+        <td><strong>${t.task}</strong></td>
+        <td><span class="pill">${t.best}</span></td>
+        <td><span class="cost-dots" title="${costLabels[t.cost]} resource use">${dots}</span><span class="cost-lbl">${costLabels[t.cost]}</span></td>
+        <td class="why">${t.why}</td>
+      </tr>`;
+    })
     .join('');
   $('toolTable').innerHTML = rows;
 }
@@ -666,7 +691,32 @@ function renderAuContext() {
     )
     .join('');
   $('auExpectations').innerHTML = rows;
-  $('auNotes').innerHTML = `<ul>${DATA.auContext.notes.map((n) => `<li>${n}</li>`).join('')}</ul>`;
+  $('auNotes').innerHTML = noteListHtml(DATA.auContext.notes || []);
+  buildAuPipelineChart();
+}
+
+function noteListHtml(notes) {
+  const html = (notes || [])
+    .map((n) => {
+      const text = typeof n === 'string' ? n : n.text;
+      const links = (typeof n === 'object' && n.sources ? n.sources : [])
+        .map((id) => {
+          const s = sourceById(id);
+          return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+        })
+        .filter(Boolean)
+        .join(' · ');
+      return `<li>${text}${links ? `<span class="note-src">${links}</span>` : ''}</li>`;
+    })
+    .join('');
+  return `<ul>${html}</ul>`;
+}
+
+function buildAuPipelineChart() {
+  const labels = ['Operational 2025', 'Forecast 2030', 'Announced pipeline', 'AEMO queue (2026)'];
+  const values = [1.4, 3.2, 21.6, 5.4];
+  const colors = ['#5b8ff9', '#7c5cd6', '#f6bd60', '#84a98c'];
+  svgBarChart('auPipelineChart', labels, values, colors);
 }
 
 function renderStaticExamples() {
@@ -699,13 +749,20 @@ function renderStaticExamples() {
   $('staticExamples').innerHTML = summary;
 
   const wueTotal = wm.wueLPerKWh + (wm.indirectLPerKWh || 0);
-  $('promptWaterValue').textContent = `~${wm.promptWaterPer100WordsMl} ml per 100-word prompt`;
 
   const refCards = (DATA.referenceCards || [])
     .map((c) => `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}</div></div>`)
     .join('');
   const wueCard = `<div class="metric"><div class="v" id="wueValue">${wueTotal} L/kWh</div><div class="u">avg data-centre WUE (direct + indirect)</div></div>`;
   $('referenceCards').innerHTML = refCards + wueCard;
+
+  const trainCards = (DATA.trainingEmbodied || [])
+    .map((c) => {
+      const s = sourceById(c.source);
+      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
+    })
+    .join('');
+  $('trainingCards').innerHTML = trainCards;
 }
 
 function currentInputs() {
@@ -742,18 +799,42 @@ function render() {
   bindText('vMonthCo2', `${cm.v} ${cm.u}`);
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
 
-  bindText('gridLabel', `Grid intensity: ${gridG} g CO2e/kWh (Australia)`);
+  bindText('gridLabel', `Grid intensity: ${gridG} g CO2e/kWh (${DATA.gridIntensity.label})`);
+  bindText('gridHint', `Selected grid: ${DATA.gridIntensity.label} (~${gridG} g CO2e/kWh, ${src(DATA.gridIntensity.source)}). All CO2 and water figures on this dashboard recompute with this grid.`);
+  bindText('examplesGridBadge', `${DATA.gridIntensity.label} ~${gridG} g CO2e/kWh`);
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
   bindText('outLabel', `Output tokens: ${outTok.toLocaleString()}`);
   bindText('queriesLabel', `Queries / day: ${queriesPerDay.toLocaleString()}`);
   bindText('modelMeta', `${model.size} · ${model.energyNote}`);
 
-  buildBreakdownChart(model, promptTok, outTok, pue);
   renderAggTable(r);
   renderBaseline(pq.wh);
   renderEquivalents(r.energyWh.monthly, r.co2G.monthly);
   renderExamples(gridG, pue, 'examplesBody');
+}
+
+function populateGridSelects() {
+  const opts = DATA.grids.map((g) => `<option value="${g.id}">${g.label} (~${g.gCO2ePerKWh} g/kWh)</option>`).join('');
+  $('gridSelect').innerHTML = opts;
+  $('gridSelectExamples').innerHTML = opts;
+  $('gridSelect').value = DATA.gridIntensity.id;
+  $('gridSelectExamples').value = DATA.gridIntensity.id;
+}
+
+function onGridChange() {
+  const id = $('gridSelect').value;
+  const g = DATA.grids.find((x) => x.id === id) || DATA.grids[0];
+  DATA.gridIntensity = g;
+  $('gridSelect').value = g.id;
+  $('gridSelectExamples').value = g.id;
+  render();
+  buildEnergyChart();
+  buildCostChart();
+  renderStaticExamples();
+  buildExamplesScatter();
+  renderMethodology();
+  renderCompareTab();
 }
 
 function onQueryTypeChange() {
@@ -776,6 +857,11 @@ function bindControls() {
     render();
     buildEnergyChart();
     buildCostChart();
+  });
+  $('gridSelect').addEventListener('change', onGridChange);
+  $('gridSelectExamples').addEventListener('change', onGridChange);
+  $('scatterMetric').addEventListener('change', () => {
+    buildExamplesScatter($('scatterMetric').value);
   });
 }
 
@@ -812,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .map((b) => `<option value="${b.id}">${b.label}</option>`)
     .join('');
 
+  populateGridSelects();
   bindTabs();
   bindControls();
   render();
@@ -828,4 +915,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAuContext();
   renderStaticExamples();
   buildExamplesScatter();
+  renderCompareTab();
 });
