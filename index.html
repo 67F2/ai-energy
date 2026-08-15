@@ -250,6 +250,12 @@
 
     <section class="tab active" id="tab-examples">
       <div class="card">
+        <h2>Right tool for the task</h2>
+        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job.</p>
+        <div style="overflow-x:auto;"><table id="toolTable"></table></div>
+      </div>
+
+      <div class="card">
         <h2>How these numbers are calculated</h2>
         <div id="methodology"></div>
       </div>
@@ -257,6 +263,8 @@
       <div class="card">
         <h2>Common AI queries and what they really cost</h2>
         <p class="hint" style="margin-bottom:16px;">Fixed estimates use the Australian grid (~500 g CO2e/kWh, IEA) and a typical data-centre PUE of 1.35. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter.</p>
+        <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
+        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (x) vs cost (y), size = water, colour = task group. Dashed bubbles have no public list price (image/video generation) and are placed at the bottom of the cost axis — their energy and water are still shown in the cards below.</p>
         <div id="staticExamples"></div>
       </div>
 
@@ -264,12 +272,6 @@
         <h2>Reference points (headline figures)</h2>
         <div class="compare-cards" id="referenceCards"><div class="metric"><div class="v">…</div><div class="u">loading</div></div></div>
         <p class="hint" id="promptWaterValue"></p>
-      </div>
-
-      <div class="card">
-        <h2>Right tool for the task</h2>
-        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job.</p>
-        <div style="overflow-x:auto;"><table id="toolTable"></table></div>
       </div>
 
       <div class="card">
@@ -394,6 +396,15 @@
         <div class="grid2">
           <div class="chart-box"><div id="macroChart"></div></div>
           <div class="notes" id="macroNotes"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Water — the undercounted resource</h2>
+        <p class="hint" style="margin-bottom:12px;">Water follows energy: each kWh of data-centre electricity embeds ~5.3 L of total water use (direct cooling + indirect power-plant water). The derived line below scales the electricity projection by that WUE; the benchmark shows a larger UNU-INWEH estimate.</p>
+        <div class="grid2">
+          <div class="chart-box"><div id="macroWaterChart"></div></div>
+          <div class="notes" id="macroWaterNotes"></div>
         </div>
       </div>
 

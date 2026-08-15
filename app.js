@@ -182,7 +182,9 @@ function svgLineChart(id, labels, series) {
   series.forEach((s) => {
     const pts = s.data.map((v, i) => (v != null ? `${xAt(i)},${yAt(v)}` : null)).filter((p) => p != null);
     if (pts.length > 1) {
-      svg.appendChild(svgEl('polyline', { points: pts.join(' '), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      const line = svgEl('polyline', { points: pts.join(' '), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round' });
+      if (s.dash) line.setAttribute('stroke-dasharray', '6 4');
+      svg.appendChild(line);
     }
     s.data.forEach((v, i) => {
       if (v == null) return;
@@ -197,6 +199,112 @@ function svgLineChart(id, labels, series) {
     svg.appendChild(t);
   });
   host.appendChild(svg);
+}
+
+const GROUP_COLORS = {
+  'Everyday text': '#5b8ff9',
+  'Heavy documents & code': '#7c5cd6',
+  'Vision & media': '#f6bd60',
+  'Audio': '#84a98c',
+  'Other': '#adb5bd',
+};
+
+function svgScatterChart(id, points, opts = {}) {
+  const host = $(id);
+  host.innerHTML = '';
+  const W = 700, H = 330;
+  const padL = 58, padB = 42, padT = 18, padR = 150;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+  const xVals = points.map((p) => p.x), yVals = points.map((p) => p.y);
+  const xMin = Math.pow(10, Math.floor(Math.log10(Math.min.apply(null, xVals))));
+  const xMax = Math.pow(10, Math.ceil(Math.log10(Math.max.apply(null, xVals))));
+  const yMin = Math.pow(10, Math.floor(Math.log10(Math.min.apply(null, yVals))));
+  const yMax = Math.pow(10, Math.ceil(Math.log10(Math.max.apply(null, yVals))));
+  const xAt = (v) => padL + (Math.log10(v) - Math.log10(xMin)) / (Math.log10(xMax) - Math.log10(xMin)) * innerW;
+  const yAt = (v) => padT + innerH - (Math.log10(v) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin)) * innerH;
+
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: '100%', preserveAspectRatio: 'xMidYMid meet' });
+  const fmtLog = (v) => {
+    if (v >= 100) return Math.round(v).toLocaleString();
+    if (v >= 1) return v.toFixed(v >= 10 ? 0 : 1);
+    if (v >= 0.01) return v.toFixed(2);
+    return v.toExponential(0);
+  };
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = xMin * Math.pow(xMax / xMin, i / ticks), x = xAt(v);
+    svg.appendChild(svgEl('line', { x1: x, y1: padT, x2: x, y2: padT + innerH, stroke: 'rgba(255,255,255,0.07)' }));
+    const t = svgEl('text', { x, y: padT + innerH + 16, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 10 });
+    t.textContent = fmtLog(v);
+    svg.appendChild(t);
+  }
+  for (let i = 0; i <= ticks; i++) {
+    const v = yMin * Math.pow(yMax / yMin, i / ticks), y = yAt(v);
+    svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: padL + innerW, y2: y, stroke: 'rgba(255,255,255,0.07)' }));
+    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 10 });
+    t.textContent = fmtLog(v);
+    svg.appendChild(t);
+  }
+  const xt = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11 });
+  xt.textContent = 'Energy per query (Wh, log scale)';
+  svg.appendChild(xt);
+  const yt = svgEl('text', { x: 14, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11, transform: `rotate(-90 14 ${padT + innerH / 2})` });
+  yt.textContent = 'Cost per query (USD, log scale)';
+  svg.appendChild(yt);
+
+  points.forEach((p) => {
+    const r = 4 + Math.min(16, Math.sqrt(p.size) * 2.2);
+    const cx = xAt(p.x), cy = yAt(p.y);
+    const circle = svgEl('circle', { cx, cy, r, fill: p.color, 'fill-opacity': '0.55', stroke: p.color, 'stroke-width': 1.5 });
+    if (p.hollow) {
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke-dasharray', '4 3');
+    }
+    svg.appendChild(circle);
+    const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9, 'font-weight': '700' });
+    t.textContent = p.label;
+    svg.appendChild(t);
+  });
+
+  const lx = padL + innerW + 22;
+  let ly = padT + 10;
+  const seen = {};
+  points.forEach((p) => {
+    if (seen[p.color]) return;
+    seen[p.color] = true;
+    const group = p.group;
+    svg.appendChild(svgEl('rect', { x: lx, y: ly - 9, width: 12, height: 12, rx: 2, fill: p.color }));
+    const t = svgEl('text', { x: lx + 18, y: ly, fill: '#c9d1d9', 'font-size': 11 });
+    t.textContent = group;
+    svg.appendChild(t);
+    ly += 20;
+  });
+  const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 10 });
+  cap.textContent = 'Bubble = water';
+  svg.appendChild(cap);
+  const cap2 = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
+  cap2.textContent = 'Dashed = no list price';
+  svg.appendChild(cap2);
+
+  host.appendChild(svg);
+}
+
+function buildExamplesScatter() {
+  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const pue = 1.35;
+  const points = EXAMPLES.map((ex) => {
+    const r = exampleResult(ex, gridG, pue).perQuery;
+    return {
+      x: r.wh,
+      y: r.costUsd != null ? r.costUsd : 0.00005,
+      size: r.waterMl,
+      color: GROUP_COLORS[ex.group] || '#adb5bd',
+      group: ex.group || 'Other',
+      label: (EXAMPLES.indexOf(ex) + 1).toString(),
+      hollow: r.costUsd == null,
+    };
+  });
+  svgScatterChart('examplesScatter', points);
 }
 
 function buildEnergyChart() {
@@ -240,6 +348,22 @@ function buildMacroChart() {
     { label: 'Global data-center electricity (TWh)', color: '#5b8ff9', data: g },
     { label: 'Six leading AI firms (TWh)', color: '#f28482', data: [118, null, null, null, null, null, null] },
   ]);
+}
+
+function buildMacroWaterChart() {
+  const labels = DATA.macro.globalDcElectricity.map((d) => d.year);
+  const wueTotal = DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPerKWh || 0);
+  const derived = DATA.macro.globalDcElectricity.map((d) => (d.tWh * wueTotal) / 1e3);
+  const bench = DATA.macro.waterBenchmark2030TrillionL || 9.3;
+  const benchSeries = labels.map(() => bench);
+  svgLineChart('macroWaterChart', labels, [
+    { label: 'Derived global DC water (trillion L)', color: '#5b8ff9', data: derived },
+    { label: 'UNU-INWEH 2030 projection (trillion L)', color: '#f6bd60', dash: true, data: benchSeries },
+  ]);
+}
+
+function renderMacroWaterNotes() {
+  $('macroWaterNotes').innerHTML = `<ul>${(DATA.macro.macroWaterNotes || []).map((n) => `<li>${n}</li>`).join('')}</ul>`;
 }
 
 function renderEquivalents(monthlyWh, monthlyCo2G) {
@@ -632,6 +756,8 @@ document.addEventListener('DOMContentLoaded', () => {
   buildEnergyChart();
   buildCostChart();
   buildMacroChart();
+  buildMacroWaterChart();
+  renderMacroWaterNotes();
   renderHeadlineRefs();
   renderSources();
   renderMethodology();
@@ -639,4 +765,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRightToolForTask();
   renderAuContext();
   renderStaticExamples();
+  buildExamplesScatter();
 });

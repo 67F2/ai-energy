@@ -2,7 +2,7 @@ const EXAMPLES = [
   {
     group: 'Everyday text',
     desc: 'Write a short email',
-    model: 'claude37',
+    model: 'claude-sonnet-5',
     promptTok: 150,
     outTok: 180,
     note: 'Lightweight, typical everyday query.',
@@ -11,16 +11,16 @@ const EXAMPLES = [
   {
     group: 'Everyday text',
     desc: 'Explain a concept in simple terms',
-    model: 'gpt4omini',
+    model: 'gpt56luna',
     promptTok: 300,
     outTok: 500,
-    note: 'Cheap small model, everyday use.',
+    note: 'Compact reasoning tier, everyday use.',
     sources: ['wattgpu', 'tokensToWh'],
   },
   {
     group: 'Everyday text',
     desc: 'Quick translation (English sentence)',
-    model: 'gpt4omini',
+    model: 'gpt56luna',
     promptTok: 200,
     outTok: 250,
     note: 'Minimal footprint.',
@@ -29,7 +29,7 @@ const EXAMPLES = [
   {
     group: 'Everyday text',
     desc: 'Quick fact-check / classification',
-    model: 'gpt4omini',
+    model: 'gpt56luna',
     promptTok: 120,
     outTok: 60,
     note: 'Tiny output; near-minimal footprint for a chat model.',
@@ -38,7 +38,7 @@ const EXAMPLES = [
   {
     group: 'Everyday text',
     desc: 'Polish / rewrite a paragraph',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 300,
     outTok: 250,
     note: 'Editing an existing draft is cheaper than writing from scratch.',
@@ -47,7 +47,7 @@ const EXAMPLES = [
   {
     group: 'Everyday text',
     desc: 'Write a social post / thread',
-    model: 'gpt4omini',
+    model: 'gpt56luna',
     promptTok: 200,
     outTok: 400,
     note: 'Everyday content, small model.',
@@ -56,7 +56,7 @@ const EXAMPLES = [
   {
     group: 'Everyday text',
     desc: 'AI-style search with citations',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 1500,
     outTok: 800,
     note: 'Blends 0.3 Wh (Google search) vs 2.9 Wh (ChatGPT) headline figures.',
@@ -65,7 +65,7 @@ const EXAMPLES = [
   {
     group: 'Heavy documents & code',
     desc: 'Summarize a 10-page PDF',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 24000,
     outTok: 700,
     note: 'Long input, short output - dominated by prefill energy.',
@@ -74,10 +74,10 @@ const EXAMPLES = [
   {
     group: 'Heavy documents & code',
     desc: 'Code review / debug a snippet',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 1600,
     outTok: 900,
-    note: 'Frontier model, moderate output.',
+    note: 'Flagship reasoning model, moderate output.',
     sources: ['tokensToWh', 'wattgpu'],
   },
   {
@@ -92,7 +92,7 @@ const EXAMPLES = [
   {
     group: 'Heavy documents & code',
     desc: 'Long-document Q&A (RAG retrieval)',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 30000,
     outTok: 1000,
     note: 'Heaviest text case in the token model.',
@@ -101,7 +101,7 @@ const EXAMPLES = [
   {
     group: 'Heavy documents & code',
     desc: 'Draft a full blog post',
-    model: 'claude37',
+    model: 'claude-sonnet-5',
     promptTok: 400,
     outTok: 1200,
     note: 'Long output - decode dominates.',
@@ -110,7 +110,7 @@ const EXAMPLES = [
   {
     group: 'Heavy documents & code',
     desc: 'Translate a long document',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 6000,
     outTok: 5000,
     note: 'Heavy bidirectional token volume.',
@@ -119,7 +119,7 @@ const EXAMPLES = [
   {
     group: 'Vision & media',
     desc: 'Image caption / vision analysis',
-    model: 'gemini25',
+    model: 'gemini3',
     promptTok: 1200,
     outTok: 120,
     note: 'Vision tokens count as input.',
@@ -128,7 +128,7 @@ const EXAMPLES = [
   {
     group: 'Vision & media',
     desc: 'Describe an uploaded photo',
-    model: 'gemini25',
+    model: 'gemini3',
     promptTok: 1500,
     outTok: 80,
     note: 'Vision input; task-specific captioning runs ~0.063 Wh per 1,000 inferences.',
@@ -137,7 +137,7 @@ const EXAMPLES = [
   {
     group: 'Vision & media',
     desc: 'Object detection via chat model',
-    model: 'gpt4o',
+    model: 'gpt56sol',
     promptTok: 2000,
     outTok: 120,
     note: 'Right-tool anti-pattern: a purpose-built detector uses ~0.038 kWh per 1,000 inferences.',
@@ -154,13 +154,13 @@ const EXAMPLES = [
   },
   {
     group: 'Vision & media',
-    desc: 'Translate to Pashto (low-resource)',
+    desc: 'Generate a short AI video clip',
     model: null,
-    modelLabel: 'Frontier LLM',
-    fixedWh: 874,
+    modelLabel: 'Text-to-video diffusion',
+    fixedWh: 90,
     fixedBaselineMl: 0,
-    note: '~179x more energy than English (3,147 kJ vs 17.6 kJ per request, Language-Energy Divide).',
-    sources: ['langEnergy'],
+    note: '~90 Wh per short clip (WAN2.1-T2V-1.3B, 720x1280, 81 frames, 50 steps). ~30x more than image generation; a flagship 14B model is ~415 Wh.',
+    sources: ['videoEnergy'],
   },
   {
     group: 'Audio',
