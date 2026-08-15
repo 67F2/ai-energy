@@ -262,7 +262,7 @@
         <h1>AI Query <span>Resource Calculator</span></h1>
         <p>Energy, water, CO2 and cost of AI chatbot queries — grounded in published data, with links.</p>
       </div>
-      <span class="badge">v2 · static · no data leaves your browser</span>
+      <span class="badge" id="versionBadge">v3 · static · no data leaves your browser</span>
     </header>
 
     <nav class="tabs">
@@ -308,11 +308,14 @@
         <h2>Training &amp; embodied footprint — the bigger picture</h2>
         <p class="hint" style="margin-bottom:12px;">A single query is only the inference (running) part. Building a model — and the hardware it runs on — carries its own footprint. Per-query inference can still dominate total energy use because it happens billions of times.</p>
         <div class="compare-cards" id="trainingCards"></div>
+        <div class="chart-box small" style="max-width:560px;margin:16px auto 0;"><div id="trainingChart"></div></div>
+        <p class="hint" style="margin-top:10px;">Log scale: the CO2e of training one large model is roughly a billion times a single query. Your own annual usage lands somewhere between the two.</p>
       </div>
 
       <div class="card">
         <h2>Reference points (headline figures)</h2>
         <div class="compare-cards" id="referenceCards"><div class="metric"><div class="v">…</div><div class="u">loading</div></div></div>
+        <p class="hint" id="glossary" style="margin-top:12px;"></p>
       </div>
 
       <div class="card">
@@ -337,6 +340,7 @@
             <tbody id="compareBody"></tbody>
           </table>
         </div>
+        <p class="hint" id="compareFoot" style="margin-top:10px;"></p>
       </div>
 
       <div class="card">
@@ -477,20 +481,15 @@
 
       <div class="card">
         <h2>Australian context: data centres &amp; AI infrastructure</h2>
-        <p class="hint" style="margin-bottom:12px;">Australia's federal government published five expectations for data-centre and AI-infrastructure developers (March 2026). They are guidance, not law.</p>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead><tr><th>No</th><th>Expectation</th><th>What it means</th></tr></thead>
-            <tbody id="auExpectations"></tbody>
-          </table>
-        </div>
-        <div class="notes" id="auNotes" style="margin-top:14px;"></div>
+        <p class="hint" style="margin-bottom:12px;">Australia has ~162 operational data centres and one of the world's largest construction pipelines. Federal expectations for developers (March 2026) are guidance, not law.</p>
+        <div class="notes" id="auNotes"></div>
       </div>
 
       <div class="card">
         <h2>Australia's data-centre build-out</h2>
-        <p class="hint" style="margin-bottom:12px;">Operational capacity ~1.4 GW now, forecast ~3.2 GW by 2030, inside a ~21.6 GW announced pipeline (Data Centres Australia / DC Byte). AEMO disclosed 5.4 GW across 11 projects in its transmission connection queue (June 2026); CommBank estimates a ~6 GW potential pipeline worth ~$150B by 2030.</p>
+        <p class="hint" style="margin-bottom:12px;">Operational capacity is forecast to grow from ~1.4 GW to ~3.2 GW by 2030 (Data Centres Australia / DC Byte). The much larger announced numbers below are not directly comparable to operational capacity — they are aspirational pipelines and connection queues, and "phantom demand" means many applications never get built.</p>
         <div class="chart-box small" style="max-width:520px;margin:0 auto;"><div id="auPipelineChart"></div></div>
+        <div class="notes" id="auBuildOutNotes" style="margin-top:14px;"></div>
       </div>
     </section>
 

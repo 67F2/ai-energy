@@ -1,3 +1,5 @@
+const VERSION = 'v3';
+
 const SOURCES = {
   wattgpu: {
     label: 'WattGPU: Predicting Inference Power and Latency on Unseen GPUs and LLMs',
@@ -304,6 +306,27 @@ const SOURCES = {
     cat: 'journalism',
     note: 'Over 160 data-centre facilities already operating across every state and territory; dozens more planned or in development, concentrated on Sydney and Melbourne boundaries.',
   },
+  abcDataCentres: {
+    label: 'In the great data centre boom, will the benefits flow offshore again?',
+    ref: 'Ian Verrender, ABC News, June 2026',
+    url: 'https://www.abc.net.au/news/2026-06-07/data-centre-boom-will-australia-benefit/106764460',
+    cat: 'journalism',
+    note: 'More than $150B lined up for AI infrastructure (~20% of non-residential construction). ~162 data centres now, at least 90 more proposed. AEMO expects data-centre demand to treble within four years. Sydney DCs ~11% of available power by 2030 (up from 4%); Melbourne demand >4x to ~8%. Much of the fit-out is imported, so benefits mostly flow offshore. Sydney DC water ~2% of city supply by 2030, Melbourne <1%.',
+  },
+  climateCouncil: {
+    label: 'Seizing the opportunity to do data centres right',
+    ref: 'Climate Council, June 2026',
+    url: 'https://www.climatecouncil.org.au/what-does-the-data-centre-boom-mean-for-australias-switch-to-renewables/',
+    cat: 'institution',
+    note: 'At least 162 operational data centres and ~90 more proposed. AEMO: DC energy demand triples to ~12 TWh by 2030 (6% of NEM), ~34 TWh / 12% by 2049-50. Industry water demand triples 5.5 GL -> 17 GL by 2030. "Phantom demand": many connection applications never materialise (NSW 11.4 GW pipeline vs only 1.2 GW expected online by 2030; VIC 9 GW vs 0.7 GW). Without matching renewables, wholesale prices +20% by 2035 (26% NSW, 23% VIC).',
+  },
+  afrFirmus: {
+    label: 'Firmus to turbocharge AI factories roll-out after giant funding deal',
+    ref: 'Paul Smith, Australian Financial Review, August 2026',
+    url: 'https://www.afr.com/technology/firmus-to-turbocharge-ai-factories-roll-out-after-giant-funding-deal-20260807-p60mc5',
+    cat: 'journalism',
+    note: 'Firmus Technologies closed a US$2B ($2.9B) capital raise to accelerate building AI factories across Australia and Asia-Pacific (IPO-hopeful).',
+  },
 };
 
 const DATA = {
@@ -315,6 +338,7 @@ const DATA = {
   ],
 
   gridIntensity: {
+    id: 'au',
     label: 'Australia (avg)',
     gCO2ePerKWh: 500,
     source: 'ieaGrid',
@@ -497,21 +521,18 @@ const DATA = {
   },
 
   auContext: {
-    expectations: [
-      { n: 1, title: "Prioritise Australia's national interest", desc: 'National security, data sovereignty, social licence, protecting sensitive data.' },
-      { n: 2, title: "Support Australia's energy transition", desc: 'Underwrite new renewable supply/storage, pay full grid-connection share, minimise demand and emissions.' },
-      { n: 3, title: 'Sustainable and efficient water usage', desc: 'Efficient cooling, non-potable/recycled water, transparent water reporting.' },
-      { n: 4, title: 'Invest in Australian skills and workforce', desc: 'Fair, safe, well-paid jobs; apprenticeships and structured training.' },
-      { n: 5, title: 'Strengthen research, innovation and local capability', desc: 'Affordable compute access for start-ups, researchers and not-for-profits.' },
-    ],
     notes: [
-      { text: 'Guidelines are expectations, not law - experts warn companies could "cut corners" on energy and water (SBS News).', sources: ['sbsNews'] },
-      { text: 'Australia data centres use ~2% of grid-supplied electricity; projected to triple to ~6% by 2030 (SBS News).', sources: ['sbsNews'] },
-      { text: 'Australia has the second-largest data centre construction pipeline in the world, after the US (SBS News).', sources: ['sbsNews'] },
-      { text: 'Federal agencies require NABERS 5-star rating for hosted data centres; no such requirement for private builds (SBS News).', sources: ['sbsNews'] },
-      { text: 'The government will deprioritise non-genuine proposals that congest approval pathways (industry.gov.au).', sources: ['industryAu'] },
+      { text: 'Australia has ~162 operational data centres and at least ~90 more proposed or in development, most in NSW and Victoria (ABC News / Climate Council).', sources: ['abcDataCentres', 'climateCouncil'] },
+      { text: 'Data centres use ~4 TWh (~2%) of NEM electricity; AEMO expects this to treble to ~12 TWh (~6%) by 2030, reaching ~34 TWh (~12%) by 2049-50 (Climate Council / AEMO).', sources: ['climateCouncil', 'aemoDc'] },
+      { text: 'Sydney data centres will use ~11% of available power by 2030 (up from 4%); Melbourne demand more than quadruples to ~8% of the state grid (ABC News).', sources: ['abcDataCentres'] },
+      { text: 'Industry water demand is projected to more than triple from 5.5 GL to ~17 GL by 2030; Sydney ~1.9% and Melbourne ~0.9% of city supply (Climate Council).', sources: ['climateCouncil'] },
+      { text: 'Federal government expectations for developers (March 2026) are guidance, not law - experts warn companies could "cut corners" on energy and water (SBS News).', sources: ['sbsNews', 'industryAu'] },
+      { text: 'The announced ~21.6 GW pipeline (DC Byte) and AEMO 5.4 GW connection queue overstate what gets built: "phantom demand" means many applications never materialise - NSW has 11.4 GW in the pipeline but only ~1.2 GW expected online by 2030 (Climate Council).', sources: ['dcByte', 'aemoDc', 'climateCouncil'] },
+      { text: 'More than $150B is lined up for data-centre construction (~20% of non-residential construction), but much of the fit-out is imported so benefits largely flow offshore (ABC News).', sources: ['abcDataCentres', 'commbankDc'] },
+      { text: 'If data-centre load is not matched with new renewables, wholesale prices could rise >20% by 2035 (26% NSW, 23% VIC); operators already voluntarily offset ~70% of energy use (Climate Council / CEFC).', sources: ['climateCouncil'] },
+      { text: 'Firmus Technologies raised US$2B to accelerate "AI factory" roll-out across Australia and Asia-Pacific, signalling continued large-scale investment (AFR).', sources: ['afrFirmus'] },
     ],
-    sources: ['industryAu', 'sbsNews', 'conversation'],
+    sources: ['industryAu', 'sbsNews', 'conversation', 'abcDataCentres', 'climateCouncil', 'afrFirmus'],
   },
 
   rightToolForTask: [
