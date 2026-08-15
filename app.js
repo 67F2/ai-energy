@@ -60,6 +60,28 @@ function fmtGpu(s) {
   return { v: s.toFixed(1), u: 's' };
 }
 
+function fmtEnergyFixed(wh) {
+  if (wh >= 1000) return { v: (wh / 1000).toFixed(2), u: 'kWh' };
+  if (wh >= 100) return { v: wh.toFixed(1), u: 'Wh' };
+  if (wh >= 1) return { v: wh.toFixed(2), u: 'Wh' };
+  if (wh >= 0.1) return { v: wh.toFixed(3), u: 'Wh' };
+  return { v: wh.toFixed(3), u: 'Wh' };
+}
+function fmtCo2Fixed(g) {
+  if (g >= 1000) return { v: (g / 1000).toFixed(2), u: 'kg' };
+  if (g >= 1) return { v: g.toFixed(2), u: 'g' };
+  return { v: g.toFixed(3), u: 'g' };
+}
+function fmtWaterFixed(ml) {
+  if (ml >= 1000) return { v: (ml / 1000).toFixed(2), u: 'L' };
+  return { v: ml.toFixed(1), u: 'ml' };
+}
+function fmtCostFixed(c) {
+  if (c >= 100) return { v: '$' + c.toFixed(0), u: '' };
+  if (c >= 1) return { v: '$' + c.toFixed(2), u: '' };
+  return { v: '$' + c.toFixed(4), u: '' };
+}
+
 function bindText(id, value) {
   const el = $(id);
   if (el) el.textContent = value;
@@ -252,18 +274,40 @@ function svgScatterChart(id, points, opts = {}) {
   yt.textContent = 'Cost per query (USD, log scale)';
   svg.appendChild(yt);
 
+  let tip = null;
+  if (opts.tip) {
+    tip = document.createElement('div');
+    tip.className = 'scatter-tip';
+    host.appendChild(tip);
+  }
+
   points.forEach((p) => {
     const r = 4 + Math.min(16, Math.sqrt(p.size) * 2.2);
     const cx = xAt(p.x), cy = yAt(p.y);
-    const circle = svgEl('circle', { cx, cy, r, fill: p.color, 'fill-opacity': '0.55', stroke: p.color, 'stroke-width': 1.5 });
+    const circle = svgEl('circle', { cx, cy, r, fill: p.color, 'fill-opacity': '0.55', stroke: p.color, 'stroke-width': 1.5, 'pointer-events': 'all' });
     if (p.hollow) {
       circle.setAttribute('fill', 'none');
       circle.setAttribute('stroke-dasharray', '4 3');
     }
     svg.appendChild(circle);
-    const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9, 'font-weight': '700' });
+    const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9, 'font-weight': '700', 'pointer-events': 'none' });
     t.textContent = p.label;
     svg.appendChild(t);
+    if (tip && opts.tip) {
+      const move = (e) => {
+        const rect = host.getBoundingClientRect();
+        tip.innerHTML = opts.tip(p);
+        tip.style.display = 'block';
+        const left = e.clientX - rect.left + 14;
+        const top = e.clientY - rect.top + 10;
+        tip.style.left = Math.min(left, rect.width - tip.offsetWidth - 8) + 'px';
+        tip.style.top = Math.min(top, rect.height - tip.offsetHeight - 8) + 'px';
+      };
+      const leave = () => { tip.style.display = 'none'; };
+      circle.addEventListener('mousemove', move);
+      circle.addEventListener('mouseenter', move);
+      circle.addEventListener('mouseleave', leave);
+    }
   });
 
   const lx = padL + innerW + 22;
@@ -302,9 +346,20 @@ function buildExamplesScatter() {
       group: ex.group || 'Other',
       label: (EXAMPLES.indexOf(ex) + 1).toString(),
       hollow: r.costUsd == null,
+      ex,
     };
   });
-  svgScatterChart('examplesScatter', points);
+  svgScatterChart('examplesScatter', points, {
+    tip: (p) => {
+      const r = exampleResult(p.ex, gridG, pue).perQuery;
+      const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
+      const cost = r.costUsd == null ? 'no list price' : fmtCostFixed(r.costUsd);
+      return `<div class="tip-title">${p.ex.desc}</div>
+        <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u} · 💵 ${cost}</div>
+        <div class="tip-metrics">${exampleModelName(p.ex)}</div>
+        ${p.ex.note ? `<div class="tip-note">${p.ex.note}</div>` : ''}`;
+    },
+  });
 }
 
 function buildEnergyChart() {
@@ -411,19 +466,19 @@ function renderBaseline(pqWh) {
 
 function renderAggTable(r) {
   const rows = [
-    ['Energy', 'kWh', fmtEnergy],
-    ['CO2e', 'g', fmtCo2],
-    ['Cost', '$', fmtCost],
-    ['Water', 'ml', fmtWater],
-    ['GPU time', 's', fmtGpu],
+    ['Energy', 'kWh', fmtEnergy, fmtEnergyFixed],
+    ['CO2e', 'g', fmtCo2, fmtCo2Fixed],
+    ['Cost', '$', fmtCost, fmtCostFixed],
+    ['Water', 'ml', fmtWater, fmtWaterFixed],
+    ['GPU time', 's', fmtGpu, fmtGpu],
   ];
   const headers = ['Metric', 'Per query', 'Per day', 'Per month', 'Per year'];
   const body = rows
-    .map(([label, key, fmt]) => {
+    .map(([label, key, fmt, fmtFixed]) => {
       const src = key === 'kWh' ? r.energyWh : key === 'g' ? r.co2G : key === '$' ? r.cost : key === 'ml' ? r.waterMl : r.gpuSecTotal;
       return `<tr>
         <td>${label}</td>
-        <td>${fmt(src.perQuery).v} ${fmt(src.perQuery).u}</td>
+        <td>${fmtFixed(src.perQuery).v} ${fmtFixed(src.perQuery).u}</td>
         <td>${fmt(src.daily).v} ${fmt(src.daily).u}</td>
         <td>${fmt(src.monthly).v} ${fmt(src.monthly).u}</td>
         <td>${fmt(src.yearly).v} ${fmt(src.yearly).u}</td>
@@ -459,10 +514,10 @@ function exampleModelName(ex) {
 function exampleChips(ex, gridG, pue) {
   const r = exampleResult(ex, gridG, pue).perQuery;
   return `<div class="ex-metrics">
-    <span class="chip">⚡ ${fmtEnergy(r.wh).v} ${fmtEnergy(r.wh).u}</span>
-    <span class="chip">🌡️ ${fmtCo2(r.gCO2e).v} ${fmtCo2(r.gCO2e).u}</span>
-    <span class="chip">💧 ${fmtWater(r.waterMl).v} ${fmtWater(r.waterMl).u}</span>
-    <span class="chip">💵 ${r.costUsd == null ? '—' : fmtCost(r.costUsd).v + fmtCost(r.costUsd).u}</span>
+    <span class="chip">⚡ ${fmtEnergyFixed(r.wh).v} ${fmtEnergyFixed(r.wh).u}</span>
+    <span class="chip">🌡️ ${fmtCo2Fixed(r.gCO2e).v} ${fmtCo2Fixed(r.gCO2e).u}</span>
+    <span class="chip">💧 ${fmtWaterFixed(r.waterMl).v} ${fmtWaterFixed(r.waterMl).u}</span>
+    <span class="chip">💵 ${r.costUsd == null ? '—' : fmtCostFixed(r.costUsd).v + fmtCostFixed(r.costUsd).u}</span>
   </div>`;
 }
 
@@ -481,10 +536,10 @@ function exampleSourceLinks(ex) {
 function renderExamples(gridG, pue, bodyId) {
   const rows = EXAMPLES.map((ex, i) => {
     const r = exampleResult(ex, gridG, pue).perQuery;
-    const e = fmtEnergy(r.wh);
-    const c = fmtCo2(r.gCO2e);
-    const cost = fmtCost(r.costUsd);
-    const w = fmtWater(r.waterMl);
+    const e = fmtEnergyFixed(r.wh);
+    const c = fmtCo2Fixed(r.gCO2e);
+    const cost = r.costUsd == null ? null : fmtCostFixed(r.costUsd);
+    const w = fmtWaterFixed(r.waterMl);
     const toks = ex.fixedWh != null ? '—' : `${(ex.promptTok / 1000).toFixed(1)}k / ${(ex.outTok / 1000).toFixed(1)}k`;
     const costCell = r.costUsd == null ? '—' : `${cost.v}${cost.u}`;
     const srcCell = exampleSourceLinks(ex);
@@ -594,12 +649,12 @@ function renderRightToolForTask() {
 }
 
 function renderAuContext() {
-  const exps = DATA.auContext.expectations
+  const rows = DATA.auContext.expectations
     .map(
-      (e) => `<div class="expectation"><span class="exp-n">${e.n}</span><div><strong>${e.title}</strong><p>${e.desc}</p></div></div>`
+      (e) => `<tr><td>${e.n}</td><td><strong>${e.title}</strong></td><td>${e.desc}</td></tr>`
     )
     .join('');
-  $('auExpectations').innerHTML = exps;
+  $('auExpectations').innerHTML = rows;
   $('auNotes').innerHTML = `<ul>${DATA.auContext.notes.map((n) => `<li>${n}</li>`).join('')}</ul>`;
 }
 
@@ -661,10 +716,10 @@ function render() {
   const r = compute(model, promptTok, outTok, queriesPerDay, gridG, pue);
   const pq = r.perQuery;
 
-  const e = fmtEnergy(pq.wh);
-  const c = fmtCo2(pq.gCO2e);
-  const cost = fmtCost(pq.costUsd);
-  const w = fmtWater(pq.waterMl);
+  const e = fmtEnergyFixed(pq.wh);
+  const c = fmtCo2Fixed(pq.gCO2e);
+  const cost = fmtCostFixed(pq.costUsd);
+  const w = fmtWaterFixed(pq.waterMl);
   const g = fmtGpu(pq.gpuSec);
 
   bindText('vEnergy', `${e.v} ${e.u}`);

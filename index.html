@@ -119,7 +119,26 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .chart-box { position: relative; height: 280px; }
+    .chart-box > div { height: 100%; }
     .chart-box.small { height: 220px; }
+    .scatter-tip {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+      display: none;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text);
+      max-width: 300px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      line-height: 1.5;
+    }
+    .scatter-tip .tip-title { font-weight: 700; margin-bottom: 4px; }
+    .scatter-tip .tip-metrics { color: var(--muted); }
+    .scatter-tip .tip-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
     .eq-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
     @media (max-width: 900px) { .eq-grid { grid-template-columns: repeat(2, 1fr); } }
     .eq-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
@@ -175,29 +194,6 @@
     .ex-eq { font-size: 12px; color: var(--muted); }
     .compare-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     @media (max-width: 900px) { .compare-cards { grid-template-columns: repeat(2, 1fr); } }
-    .expectation {
-      display: flex;
-      gap: 12px;
-      background: var(--panel2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-    .exp-n {
-      flex-shrink: 0;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 13px;
-    }
-    .expectation p { font-size: 13px; color: var(--muted); margin-top: 2px; }
     .ex-group {
       font-size: 12px;
       text-transform: uppercase;
@@ -256,16 +252,16 @@
       </div>
 
       <div class="card">
-        <h2>How these numbers are calculated</h2>
-        <div id="methodology"></div>
+        <h2>Common AI queries and what they really cost</h2>
+        <p class="hint" style="margin-bottom:16px;">Fixed estimates use the Australian grid (~500 g CO2e/kWh, IEA) and a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter.</p>
+        <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
+        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs cost (USD), size = water (ml), colour = task group. Hover a bubble for details. Dashed bubbles have no public list price (image/video generation) and are placed at the bottom of the cost axis — their energy and water are still shown in the cards below.</p>
+        <div id="staticExamples"></div>
       </div>
 
       <div class="card">
-        <h2>Common AI queries and what they really cost</h2>
-        <p class="hint" style="margin-bottom:16px;">Fixed estimates use the Australian grid (~500 g CO2e/kWh, IEA) and a typical data-centre PUE of 1.35. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter.</p>
-        <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
-        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (x) vs cost (y), size = water, colour = task group. Dashed bubbles have no public list price (image/video generation) and are placed at the bottom of the cost axis — their energy and water are still shown in the cards below.</p>
-        <div id="staticExamples"></div>
+        <h2>How these numbers are calculated</h2>
+        <div id="methodology"></div>
       </div>
 
       <div class="card">
@@ -326,7 +322,7 @@
           <div class="cards">
             <div class="metric"><div class="v" id="vEnergy">–</div><div class="u">Energy / query</div></div>
             <div class="metric"><div class="v" id="vCo2">–</div><div class="u">CO2e / query</div></div>
-            <div class="metric"><div class="v" id="vCost">–</div><div class="u">Cost / query</div></div>
+            <div class="metric"><div class="v" id="vCost">–</div><div class="u">Cost / query (USD)</div></div>
             <div class="metric"><div class="v" id="vWater">–</div><div class="u">Water / query</div></div>
             <div class="metric"><div class="v" id="vGpu">–</div><div class="u">GPU time / query</div></div>
           </div>
@@ -411,7 +407,12 @@
       <div class="card">
         <h2>Australian context: data centres &amp; AI infrastructure</h2>
         <p class="hint" style="margin-bottom:12px;">Australia's federal government published five expectations for data-centre and AI-infrastructure developers (March 2026). They are guidance, not law.</p>
-        <div id="auExpectations"></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>No</th><th>Expectation</th><th>What it means</th></tr></thead>
+            <tbody id="auExpectations"></tbody>
+          </table>
+        </div>
         <div class="notes" id="auNotes" style="margin-top:14px;"></div>
       </div>
     </section>
