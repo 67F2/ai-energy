@@ -307,7 +307,7 @@
 
       <div class="card">
         <h2>Right tool for the task</h2>
-        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job. Resource use: 0–3 dots (near-zero to high).</p>
+        <p class="hint" style="margin-bottom:12px;">The Conversation's point: using a frontier AI for tiny tasks is like sending a large truck to deliver one envelope — the job gets done, but with far more energy (and cost) than needed. Match the tool to the job. Resource use: 0–3 dots (near-zero to high).</p>
         <div style="overflow-x:auto;"><table id="toolTable">
           <thead><tr><th>Task</th><th>Best tool</th><th>Resource use</th><th>Why</th></tr></thead>
           <tbody id="toolBody"></tbody>
@@ -335,10 +335,10 @@
 
       <div class="card">
         <h2>Your AI use vs everyday things</h2>
-        <p class="hint" style="margin-bottom:12px;">A useful way to feel the numbers: how does a query or a model compare with everyday things? "Queries" below assume one ChatGPT-style query on the selected grid (<span id="everydayGridBadge"></span>).</p>
+        <p class="hint" style="margin-bottom:12px;">A useful way to feel the numbers: how does a query or a model compare with everyday things? Each "≈ In AI terms" figure is recomputed for the selected grid (<span id="everydayGridBadge"></span>) and spans email (lightest) to audio/video (heaviest).</p>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Everyday thing</th><th>CO2e footprint</th><th>≈ In AI terms</th><th>Reference</th></tr></thead>
+            <thead><tr><th>Everyday thing</th><th>≈ In AI terms (email → audio/video)</th></tr></thead>
             <tbody id="everydayBody"></tbody>
           </table>
         </div>
@@ -433,11 +433,6 @@
               <div style="overflow-x:auto;"><table id="aggTable"></table></div>
             </div>
             <div class="subcard">
-              <h3>Compare this query to…</h3>
-              <select id="compareSelect"></select>
-              <div class="hint" id="compareResult" style="margin-top:8px;"></div>
-            </div>
-            <div class="subcard">
               <h3>That's equal to… (per month)</h3>
               <div class="eq-grid" id="equivalents"></div>
             </div>
@@ -455,22 +450,6 @@
           <h2>Cost per 1,000 queries by model</h2>
           <div class="chart-box"><div id="costChart"></div></div>
           <p class="hint">API list prices per 1M tokens; bars show cost per 1,000 queries.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Example queries — recomputed live with your grid + PUE</h2>
-        <p class="hint" style="margin-bottom:12px;">Unlike the fixed cards on the <a href="#" data-goto="tab-examples">Examples tab</a>, this table recomputes with the selected grid (<span id="examplesGridBadge">Australia ~500 g CO2e/kWh</span>) and your PUE slider. Change any parameter above and watch every row update.</p>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th><th>Query</th><th>Model</th><th>tokens in/out</th>
-                <th>Energy</th><th>CO2e</th><th>Water</th><th>Cost</th><th>Note</th>
-              </tr>
-            </thead>
-            <tbody id="examplesBody"></tbody>
-          </table>
         </div>
       </div>
     </section>

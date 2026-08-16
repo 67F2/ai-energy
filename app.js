@@ -483,28 +483,6 @@ function renderEquivalents(monthlyWh, monthlyCo2G) {
   $('equivalents').innerHTML = cards;
 }
 
-function renderBaseline(pqWh) {
-  const id = $('compareSelect').value;
-  const b = DATA.baselines.find((x) => x.id === id);
-  if (!b) {
-    $('compareResult').innerHTML = '';
-    return;
-  }
-  if (b.type === 'number') {
-    const ratio = pqWh / b.value;
-    const s = sourceById(b.source);
-    $('compareResult').innerHTML =
-      `This query uses about <strong>${ratio.toFixed(1)}x</strong> the energy of a ${b.label} ` +
-      `(${b.value} ${b.unit}). ${b.note} <a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>.`;
-    return;
-  }
-  const s = sourceById(b.source);
-  const points = b.points.map((p) => `<li>${p}</li>`).join('');
-  $('compareResult').innerHTML =
-    `<em>${b.note}</em><ul style="margin:6px 0 0 18px;padding:0;">${points}</ul>` +
-    `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>.`;
-}
-
 function renderAggTable(r) {
   const rows = [
     ['Energy', 'kWh', fmtEnergy, fmtEnergyFixed],
@@ -570,32 +548,7 @@ function exampleEqText(ex, gridG, pue) {
   const bottlePct = ((r.waterMl / eq.waterBottleMl) * 100).toFixed(1);
   const phonePct = ((r.wh / eq.smartphoneChargeWh) * 100).toFixed(1);
   const coffeePct = ((r.gCO2e / eq.coffeeG) * 100).toFixed(1);
-  return `That's roughly ${bottlePct}% of a ${eq.waterBottleMl}&nbsp;ml bottle of water · ${phonePct}% of a phone charge · ${coffeePct}% of a cup of coffee`;
-}
-
-function renderExamples(gridG, pue, bodyId) {
-  const rows = EXAMPLES.map((ex, i) => {
-    const r = exampleResult(ex, gridG, pue).perQuery;
-    const e = fmtEnergyFixed(r.wh);
-    const c = fmtCo2Fixed(r.gCO2e);
-    const cost = r.costUsd == null ? null : fmtCostFixed(r.costUsd);
-    const w = fmtWaterFixed(r.waterMl);
-    const toks = ex.fixedWh != null ? '—' : `${(ex.promptTok / 1000).toFixed(1)}k / ${(ex.outTok / 1000).toFixed(1)}k`;
-    const costCell = r.costUsd == null ? '—' : `${cost.v}${cost.u}`;
-    const srcCell = exampleSourceLinks(ex);
-    return `<tr>
-      <td>${i + 1}</td>
-      <td>${ex.desc}</td>
-      <td>${exampleModelName(ex)}</td>
-      <td>${toks}</td>
-      <td>${e.v} ${e.u}</td>
-      <td>${c.v} ${c.u}</td>
-      <td>${w.v} ${w.u}</td>
-      <td>${costCell}</td>
-      <td>${srcCell ? srcCell + ' · ' : ''}${ex.note}</td>
-    </tr>`;
-  }).join('');
-  $(bodyId).innerHTML = rows;
+  return `≈ ${bottlePct}% of a ${eq.waterBottleMl}&nbsp;ml bottle of water · ${phonePct}% of a phone charge · ${coffeePct}% of a cup of coffee`;
 }
 
 function renderCompareTab() {
@@ -690,7 +643,7 @@ function renderMethodology() {
       <div class="method">
         <h3>⚡ Energy</h3>
         <p><code>Wh = (promptTok × J/input + outTok × J/output) × PUE ÷ 3600</code></p>
-        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks (${src('tokensToWh')}, ${src('wattgpu')}, ${src('tokenPowerBench')}); the default is calibrated against ${src('jouleInference')}. PUE overhead ${pue}× is an adjustable assumption.</p>
+        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks; the default is calibrated against the peer-reviewed ${src('jouleInference')} median. PUE overhead ${pue}× is an adjustable assumption.</p>
       </div>
       <div class="method">
         <h3>🌡️ CO2</h3>
@@ -920,19 +873,40 @@ function renderStaticExamples() {
 }
 
 function renderEverydayTable(gridG) {
-  const perQueryG = 0.31 / 1000 * gridG;
-  const queriesFor = (kgCo2e) => Math.round((kgCo2e * 1000) / perQueryG).toLocaleString();
-  const evTraining = Math.round(284 / 7);
+  const pue = 1.35;
+  const emailG = exampleResult(EXAMPLES[0], gridG, pue).perQuery.gCO2e;
+  const chatG = 0.31 / 1000 * gridG;
+  const imageG = 2.9 / 1000 * gridG;
+  const audioG = 16 / 1000 * gridG;
+  const videoG = 90 / 1000 * gridG;
+  const f = (n) => {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e4) return Math.round(n / 1e3) + 'k';
+    return Math.round(n).toLocaleString();
+  };
+  const spectrumFor = (kg) => {
+    const g = kg * 1000;
+    return `≈ ${f(g / emailG)} emails · ${f(g / chatG)} chat queries · ${f(g / imageG)} AI images · ${f(g / audioG)} h audio · ${f(g / videoG)} video clips`;
+  };
+  const srcLink = (id) => {
+    const s = sourceById(id);
+    return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+  };
   const rows = [
-    { thing: 'Manufacturing a new EV (incl. battery)', footprint: '~7 t CO2e', ai: `Training a GPT-3-era model (~284 t CO2e) is the carbon of about ${evTraining} new EVs — so one EV is roughly 1/${evTraining} of a training run`, source: 'icctEv' },
-    { thing: 'A block of cheese (250 g)', footprint: '~2.7 kg CO2e', ai: `≈ ${queriesFor(2.7)} ChatGPT queries`, source: 'owidFood' },
-    { thing: 'Growing 10 kg of carrots', footprint: '~4 kg CO2e', ai: `≈ ${queriesFor(4)} ChatGPT queries`, source: 'carboncloudCarrots' },
-    { thing: 'One ChatGPT query (Joule 2026 median)', footprint: `~${(perQueryG).toFixed(3)} g CO2e`, ai: '= the baseline query', source: 'jouleInference' },
+    { thing: 'Manufacturing a new EV (incl. battery)', footprint: '~7 t CO2e', special: 'Training a GPT-3-era model (~284 t CO2e) is the carbon of about 41 new EVs.', source: 'icctEv' },
+    { thing: 'A litre of milk', footprint: '~1.3 kg CO2e', kg: 1.3, source: 'owidFood' },
+    { thing: 'A block of cheese (250 g)', footprint: '~2.7 kg CO2e', kg: 2.7, source: 'owidFood' },
+    { thing: 'A loaf of bread', footprint: '~0.8 kg CO2e', kg: 0.8, source: 'owidFood' },
+    { thing: 'Buying 10 kg of carrots from a supermarket', footprint: '~4 kg CO2e', kg: 4, source: 'carboncloudCarrots' },
+    { thing: 'Driving 100 km in a petrol car', footprint: '~17 kg CO2e', kg: 17, source: 'carPetrol' },
+    { thing: '1 kg of beef', footprint: '~27 kg CO2e', kg: 27, source: 'owidFood' },
+    { thing: 'A smartphone (manufacture)', footprint: '~70 kg CO2e', kg: 70, source: 'smartphoneEmbodied' },
+    { thing: 'One ChatGPT query (Joule 2026 median)', footprint: `~${(chatG).toFixed(3)} g CO2e`, special: '= the baseline query', source: 'jouleInference' },
   ];
   $('everydayGridBadge').textContent = `${DATA.gridIntensity.label} ~${gridG} g CO2e/kWh`;
   $('everydayBody').innerHTML = rows.map((r) => {
-    const s = sourceById(r.source);
-    return `<tr><td>${r.thing}</td><td>${r.footprint}</td><td class="why">${r.ai}</td><td>${s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : ''}</td></tr>`;
+    const ai = r.special || spectrumFor(r.kg);
+    return `<tr><td><strong>${r.thing}</strong><br><span class="hint">${r.footprint} · ${srcLink(r.source)}</span></td><td class="why">${ai}</td></tr>`;
   }).join('');
 }
 
@@ -977,7 +951,6 @@ function render() {
 
   bindText('gridLabel', `Grid intensity: ${gridG} g CO2e/kWh (${DATA.gridIntensity.label})`);
   bindText('gridHint', `Selected grid: ${DATA.gridIntensity.label} (~${gridG} g CO2e/kWh, ${src(DATA.gridIntensity.source)}). CO2e figures recompute with this grid; water remains based on energy use and data-centre WUE.`);
-  bindText('examplesGridBadge', `${DATA.gridIntensity.label} ~${gridG} g CO2e/kWh`);
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
   bindText('outLabel', `Output tokens: ${outTok.toLocaleString()}`);
@@ -985,9 +958,7 @@ function render() {
   bindText('modelMeta', `${model.size} · ${model.energyNote}`);
 
   renderAggTable(r);
-  renderBaseline(pq.wh);
   renderEquivalents(r.energyWh.monthly, r.co2G.monthly);
-  renderExamples(gridG, pue, 'examplesBody');
 }
 
 function populateGridSelects() {
@@ -1024,7 +995,6 @@ function onQueryTypeChange() {
 function bindControls() {
   const ids = ['modelSelect', 'queryType', 'promptSlider', 'outSlider', 'queriesSlider', 'pueSlider'];
   ids.forEach((id) => $(id).addEventListener('input', render));
-  $('compareSelect').addEventListener('change', render);
   $('queryType').addEventListener('change', () => {
     onQueryTypeChange();
     render();
@@ -1072,11 +1042,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const qtSel = $('queryType');
   qtSel.innerHTML = DATA.queryTypes
     .map((q) => `<option value="${q.id}">${q.label}</option>`)
-    .join('');
-
-  const cmpSel = $('compareSelect');
-  cmpSel.innerHTML = DATA.baselines
-    .map((b) => `<option value="${b.id}">${b.label}</option>`)
     .join('');
 
   populateGridSelects();

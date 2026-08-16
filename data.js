@@ -1,4 +1,4 @@
-const VERSION = 'v10';
+const VERSION = 'v11';
 
 const SOURCES = {
   wattgpu: {
@@ -346,14 +346,28 @@ const SOURCES = {
     ref: 'Poore & Nemecek 2018, Science; via Our World in Data',
     url: 'https://ourworldindata.org/environmental-impacts-of-food',
     cat: 'peer',
-    note: 'Peer-reviewed global averages: ~10.8 kg CO2e per kg of cheese; ~0.34 kg CO2e per kg of root vegetables (carrots).',
+    note: 'Peer-reviewed global averages: ~1.3 kg CO2e per litre of milk; ~0.8 kg CO2e per loaf of bread; ~10.8 kg CO2e per kg of cheese; ~0.34 kg CO2e per kg of root vegetables (carrots); ~27 kg CO2e per kg of beef.',
   },
   carboncloudCarrots: {
     label: 'Carrots climate report (CarbonCloud verified)',
     ref: 'CarbonCloud ClimateHub, 2026',
     url: 'https://apps.carboncloud.com/climatehub/product-reports/id/89115431439',
     cat: 'institution',
-    note: 'Verified life-cycle figure ~0.4 kg CO2e per kg carrots at the store shelf (UK).',
+    note: 'Verified life-cycle figure ~0.4 kg CO2e per kg carrots at the store shelf (UK) — i.e. the footprint of buying 10 kg of carrots from a supermarket, not growing them yourself.',
+  },
+  carPetrol: {
+    label: 'UK Government GHG Conversion Factors 2024 (petrol car)',
+    ref: 'UK DESNZ, 2024',
+    url: 'https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024',
+    cat: 'institution',
+    note: 'Official conversion factor for an average petrol car ~0.17 kg CO2e per km (tailpipe + fuel supply chain), i.e. ~17 kg CO2e per 100 km driven.',
+  },
+  smartphoneEmbodied: {
+    label: 'Apple Product Environmental Report (iPhone)',
+    ref: 'Apple, 2024-2025',
+    url: 'https://www.apple.com/environment/',
+    cat: 'vendor',
+    note: 'Apple-reported lifecycle carbon for a flagship iPhone ~70 kg CO2e, of which ~80% is manufacturing (chips, display, battery, assembly).',
   },
   dcByte: {
     label: 'Australian Data Centre Forecast Report',
@@ -670,47 +684,11 @@ const DATA = {
 
   rightToolForTask: [
     { task: 'A quick factual question', best: 'Ecosia search (renewable)', cost: 1, why: 'A search uses a fraction of a watt-hour — far less than a frontier chat query. Ecosia runs on 100% renewable energy and produces ~2x the renewable energy its searches use.' },
-    { task: 'A short, simple sentence polish', best: 'Your own brain / spell-checker', cost: 0, why: 'Large-truck-for-one-envelope: outcome identical, far less compute.' },
+    { task: 'A short, simple sentence polish', best: 'Your own brain / spell-checker', cost: 0, why: 'Using a frontier AI to polish one sentence is overkill - like sending a large truck to deliver one envelope: same outcome, far less compute needed.' },
     { task: 'Math or calculation', best: 'Calculator / spreadsheet', cost: 0, why: 'Deterministic tools give exact answers with negligible resource use.' },
-    { task: 'A one-off summarisation of short text', best: 'Small model / quick AI answer', cost: 2, why: 'Smaller models use far less energy than frontier flagship models.' },
+    { task: 'A one-off summarisation of short text', best: "Your app's default / quick-answer tier", cost: 2, why: 'You usually do not pick the model yourself - the default or "quick" tier in most AI apps already routes simple requests to a smaller, cheaper model that uses far less energy than a flagship.' },
     { task: 'Code review, long analysis, creative draft', best: 'Frontier AI model', cost: 3, why: 'The most justified use of the most resource-intensive models.' },
-    { task: 'Images, audio, video generation', best: 'Avoid unless necessary', cost: 3, why: 'Media generation typically requires far more compute than text.' },
+    { task: 'Images, audio, video generation', best: 'Use a real camera / mic / phone (no AI)', cost: 3, why: 'Capturing media with a phone or microphone uses no AI compute at all; AI generation of images, audio or video is far more energy-hungry than text, so generate only what you cannot record.' },
   ],
 
-  baselines: [
-    {
-      id: 'google-search',
-      label: 'Google search',
-      type: 'number',
-      value: 0.3,
-      unit: 'Wh',
-      source: 'devries',
-      note: 'Headline estimate from de Vries 2023 (~0.3 Wh per search).',
-    },
-    {
-      id: 'ecosia-search',
-      label: 'Ecosia search',
-      type: 'aggregate',
-      source: 'ecosiaHome',
-      points: [
-        'Runs on 100% renewable energy; Ecosia claims to produce about twice as much renewable energy as its searches use.',
-        'Claims each Ecosia search "removes 1 kg of CO2" through tree-planting profits (Regeneration Report).',
-        'Annual organizational footprint: ~102 t CO2 (audited aggregate, not per-query).',
-      ],
-      note: 'Ecosia publishes no per-query energy/CO2 figure for a search.',
-    },
-    {
-      id: 'ecosia-ai',
-      label: 'Ecosia AI (chat / overviews)',
-      type: 'aggregate',
-      source: 'ecosiaAi',
-      points: [
-        'Launched December 2025: AI Overviews + AI Chat, both optional and switchable off.',
-        'Uses smaller, more efficient models via a European provider; avoids video generation; no per-query figure published.',
-        'Ecosia estimates the AI chatbot raises its CO2 footprint ~5% (~5.1 t on the ~102 t base).',
-        'Claims to generate more renewable energy than its AI features use; selects models via AI Energy Score and Ecologits.',
-      ],
-      note: 'Ecosia publishes no per-query energy/CO2 figure for an AI interaction.',
-    },
-  ],
 };
