@@ -59,8 +59,8 @@ const EXAMPLES = [
     model: 'gpt56sol',
     promptTok: 1500,
     outTok: 800,
-    note: 'Blends 0.3 Wh (Google search) vs 2.9 Wh (ChatGPT) headline figures.',
-    sources: ['devries', 'sbsNews'],
+    note: 'Blends ~0.3 Wh (Google search) vs ~0.31 Wh (ChatGPT, Joule 2026 median) current-era figures.',
+    sources: ['devries', 'jouleInference'],
   },
   {
     group: 'Heavy documents & code',

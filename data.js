@@ -1,4 +1,4 @@
-const VERSION = 'v8';
+const VERSION = 'v9';
 
 const SOURCES = {
   wattgpu: {
@@ -181,7 +181,7 @@ const SOURCES = {
     ref: 'Cameron Carr, SBS News, March 2026',
     url: 'https://www.sbs.com.au/news/article/new-expectations-in-place-for-resource-hungry-data-centres-coming-to-australia/9cqgj2cdj',
     cat: 'journalism',
-    note: 'IEA: ChatGPT ~2.9 Wh/query (~10x Google search); ~0.5 L water per 20-50 queries. Altman counter-claim ~0.34 Wh. AU data centres ~2% of grid energy tripling to ~6% by 2030; expectations voluntary, not law.',
+    note: 'IEA: ChatGPT ~2.9 Wh/query (~10x Google search); ~0.5 L water per 20-50 queries. Altman counter-claim ~0.34 Wh. The ~2.9 Wh figure is a 2024 headline estimate, since refined downward by peer-reviewed work (Joule 2026 median ~0.31 Wh). AU data centres ~2% of grid energy tripling to ~6% by 2030; expectations voluntary, not law.',
   },
   cellReports: {
     label: 'The carbon and water footprints of data centers and what this could mean for artificial intelligence',
@@ -527,7 +527,7 @@ const DATA = {
   referenceCards: [
     { value: '~0.31 Wh', label: 'peer-reviewed frontier-inference calibration', source: 'jouleInference' },
     { value: '~519 ml', label: 'water per 100-word AI prompt', source: 'eesiWater' },
-    { value: '~2.9 Wh', label: 'IEA estimate: a ChatGPT query', source: 'sbsNews' },
+    { value: '~0.31 Wh', label: 'a ChatGPT query (median, Joule 2026)', source: 'jouleInference' },
     { value: '~0.3 Wh', label: 'a Google search (de Vries)', source: 'devries' },
   ],
 
@@ -540,7 +540,7 @@ const DATA = {
 
   headlineRefs: [
     { label: 'Google search (de Vries 2023)', value: 0.3, unit: 'Wh', source: 'devries' },
-    { label: 'ChatGPT query (IEA via SBS, 2024)', value: 2.9, unit: 'Wh', source: 'sbsNews' },    { label: 'ChatGPT query (Altman counter-claim)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
+    { label: 'ChatGPT query (Joule 2026, median)', value: 0.31, unit: 'Wh', source: 'jouleInference' },    { label: 'ChatGPT query (OpenAI/Altman, 2025)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
     { label: 'ChatGPT avg CO2e (Cloud Carbon Footprint 2024)', value: 8.3, unit: 'g', source: 'cloudCarbon' },
     { label: 'GPT-3.5 query CO2e (Cloud Carbon Footprint 2024)', value: 4, unit: 'g', source: 'cloudCarbon' },
     { label: 'GPT-4 query CO2e (Cloud Carbon Footprint 2024)', value: 15, unit: 'g', source: 'cloudCarbon' },
@@ -648,7 +648,7 @@ const DATA = {
   },
 
   rightToolForTask: [
-    { task: 'A quick factual question', best: 'Web search / search engine', cost: 1, why: 'AI chatbots use ~10x the energy of a Google search per query (IEA via SBS).' },
+    { task: 'A quick factual question', best: 'Ecosia search (renewable)', cost: 1, why: 'A search uses a fraction of a watt-hour — far less than a frontier chat query. Ecosia runs on 100% renewable energy and produces ~2x the renewable energy its searches use.' },
     { task: 'A short, simple sentence polish', best: 'Your own brain / spell-checker', cost: 0, why: 'Large-truck-for-one-envelope: outcome identical, far less compute.' },
     { task: 'Math or calculation', best: 'Calculator / spreadsheet', cost: 0, why: 'Deterministic tools give exact answers with negligible resource use.' },
     { task: 'A one-off summarisation of short text', best: 'Small model / quick AI answer', cost: 2, why: 'Smaller models use far less energy than frontier flagship models.' },

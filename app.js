@@ -624,7 +624,7 @@ function renderCompareTab() {
 
   const rows = [
     `<tr><td>Google search</td>${fmtCells(0.3, 0.3 * gridG / 1000, null)}<td>~0.3 Wh per search (de Vries 2023), since disputed as an overestimate. Baseline for comparison.</td><td>${srcCell('devries')}</td></tr>`,
-    `<tr><td>ChatGPT query (IEA via SBS)</td>${fmtCells(2.9, 2.9 * gridG / 1000, null)}<td>~2.9 Wh per query (~10x a Google search); Altman counter-claim ~0.34 Wh.</td><td>${srcCell('sbsNews')}</td></tr>`,
+    `<tr><td>ChatGPT query (current era)</td>${fmtCells(0.31, 0.31 * gridG / 1000, null)}<td>~0.31 Wh per query (median, Joule 2026 peer-reviewed; IQR 0.16-0.60). The widely-cited ~2.9 Wh figure (2023) is now considered an overestimate; Altman counter-claim ~0.34 Wh.</td><td>${srcCell('jouleInference')}</td></tr>`,
     `<tr><td>Ecosia search</td>${fmtCells(null, null, null)}<td>No per-query figure published. Ecosia produces ~200% of the renewable energy its searches use, and reports an audited organisation footprint of ~102 t CO2/yr (aggregate, not per-search).</td><td>${srcCell('ecosiaRegen')} · ${srcCell('ecosiaFactCheck')}</td></tr>`,
     `<tr><td>Ecosia AI (chat / overviews)</td>${fmtCells(null, null, null)}<td>No per-query figure published. Optional and switchable off; uses smaller, efficient models via a European provider; Ecosia estimates AI raises its CO2 footprint ~5% (~5.1 t on the ~102 t base).</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
     `<tr><td>AI image generation</td>${fmtCells(2.9, 2.9 * gridG / 1000, 0.04)}<td>~2.9 Wh/image (Power Hungry). Cost = GPT Image 1 medium tier.</td><td>${srcCell('powerHungry')} · ${srcCell('gptImagePrice')}</td></tr>`,
@@ -648,8 +648,9 @@ function renderCompareTab() {
 
   const refs = [
     { label: 'Google search (de Vries 2023)', value: 0.3, unit: 'Wh', source: 'devries' },
-    { label: 'ChatGPT query (IEA via SBS, 2024)', value: 2.9, unit: 'Wh', source: 'sbsNews' },
-    { label: 'ChatGPT query (Altman counter-claim)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
+    { label: 'ChatGPT query (Joule 2026, median)', value: 0.31, unit: 'Wh', source: 'jouleInference' },
+    { label: 'ChatGPT query (IEA via SBS, 2024 — historical)', value: 2.9, unit: 'Wh', source: 'sbsNews' },
+    { label: 'ChatGPT query (OpenAI/Altman, 2025)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
     { label: 'AI image vs text classification (UNU-INWEH 2026)', value: 1450, unit: 'x', source: 'unricAi' },
     { label: 'AI image water footprint (UNU-INWEH 2026)', value: 29, unit: 'ml', source: 'unricAi' },
   ];
