@@ -1,4 +1,4 @@
-const VERSION = 'v4';
+const VERSION = 'v5';
 
 const SOURCES = {
   wattgpu: {
@@ -84,6 +84,55 @@ const SOURCES = {
     url: 'https://www.mdpi.com/2813-0324/10/1/6',
     cat: 'peer',
     note: 'Measured Whisper (local) vs Google Speech-to-Text (cloud) on 20,000 clips / ~22.2 h of audio. Cloud STT used ~51% less energy (~0.35 kWh total) and ~42% less CO2 than locally-run Whisper.',
+  },
+  jouleInference: {
+    label: 'Energy use of AI inference, efficiency pathways, and test-time scaling',
+    ref: 'Joule, 2026, 102430',
+    url: 'https://doi.org/10.1016/j.joule.2026.102430',
+    cat: 'peer',
+    note: 'Peer-reviewed frontier-inference study: ~0.31 Wh per standard query; reasoning queries with ~5,000 output tokens use roughly 13x more energy. Useful calibration, not a universal provider measurement.',
+  },
+  tokenPowerBench: {
+    label: 'TokenPowerBench: Benchmarking the Power Consumption of LLM Inference',
+    ref: 'AAAI, 2026',
+    url: 'https://ojs.aaai.org/index.php/AAAI/article/view/40535',
+    cat: 'peer',
+    note: 'Peer-reviewed benchmark reporting joules/token, joules/response and system power across prefill/decode phases, batch sizes, parallelism and quantisation.',
+  },
+  npjWater: {
+    label: 'Data centre water consumption',
+    ref: 'Mytton, npj Clean Water 4, 2021',
+    url: 'https://doi.org/10.1038/s41545-021-00101-w',
+    cat: 'peer',
+    note: 'Defines direct WUE and source WUE, which adds water consumed during electricity generation. It warns that off-site water intensity varies by grid and technology.',
+  },
+  sustainableWater: {
+    label: 'Sustainable AI infrastructure: A scenario-based forecast of water footprint under uncertainty',
+    ref: 'Herrera et al., Journal of Cleaner Production 526, 2025',
+    url: 'https://doi.org/10.1016/j.jclepro.2025.146528',
+    cat: 'peer',
+    note: 'Peer-reviewed global scenario model separating on-site cooling, off-site electricity water and embodied hardware water; useful for uncertainty ranges rather than a single fixed factor.',
+  },
+  kettleEnergy: {
+    label: 'Energy Saving Trust household energy guide',
+    ref: 'Energy Saving Trust, 2022',
+    url: 'https://energysavingtrust.org.uk/wp-content/uploads/2022/11/Energy-Saving-Trust-Warm-Home-Hacks-guide-final.pdf',
+    cat: 'institution',
+    note: 'A full kettle (about seven cups) is estimated at roughly 0.2 kWh, or 200 Wh. Actual use varies with volume, starting temperature and kettle efficiency.',
+  },
+  aerTariff: {
+    label: 'Australian Energy Regulator household electricity pricing guide',
+    ref: 'AER, 2025–26',
+    url: 'https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill',
+    cat: 'institution',
+    note: 'Household electricity bills charge usage in cents per kWh; the actual tariff depends on retailer, location and plan.',
+  },
+  rbaFx: {
+    label: 'Reserve Bank of Australia exchange-rate overview',
+    ref: 'RBA, 31 July 2026',
+    url: 'https://www.rba.gov.au/exchange-rates-overview.html',
+    cat: 'institution',
+    note: 'AUD/USD reference rate used to align the kettle’s Australian-dollar cost with the chart’s USD cost axis.',
   },
   ieaEnergyAI: {
     label: 'IEA, Energy and AI',
@@ -365,6 +414,15 @@ const SOURCES = {
 };
 
 const DATA = {
+  kettle: {
+    energyWh: 200,
+    purchaseAud: 50,
+    lifeYears: 5,
+    fullBoilsPerDay: 2,
+    electricityAudPerKWh: 0.27,
+    audUsd: 0.70,
+    fullKettleWaterMl: 1750,
+  },
   grids: [
     { id: 'au', label: 'Australia (avg)', gCO2ePerKWh: 500, source: 'ieaGrid' },
     { id: 'us', label: 'United States (avg)', gCO2ePerKWh: 386, source: 'epaEg' },
@@ -390,7 +448,6 @@ const DATA = {
       jPerOutTok: 1.6,
       priceInUsdPer1M: 5.00,
       priceOutUsdPer1M: 30.00,
-      waterPerQueryMl: 5,
       reasoning: true,
       energyNote: 'decode-energy assumption (reasoning model; chain-of-thought, effort varies none-max)',
       sources: ['wattgpu', 'tokensToWh', 'langEnergy', 'openaiPrice', 'eesiWater', 'sbsNews', 'thirsty'],
@@ -405,7 +462,6 @@ const DATA = {
       jPerOutTok: 0.6,
       priceInUsdPer1M: 0.20,
       priceOutUsdPer1M: 1.20,
-      waterPerQueryMl: 1.5,
       reasoning: true,
       energyNote: 'decode-energy assumption (reasoning model; compact tier)',
       sources: ['wattgpu', 'tokensToWh', 'openaiPrice', 'eesiWater', 'sbsNews', 'thirsty'],
@@ -420,7 +476,6 @@ const DATA = {
       jPerOutTok: 1.4,
       priceInUsdPer1M: 2.00,
       priceOutUsdPer1M: 10.00,
-      waterPerQueryMl: 5,
       reasoning: true,
       energyNote: 'decode-energy assumption (reasoning model; chain-of-thought)',
       sources: ['wattgpu', 'tokensToWh', 'langEnergy', 'anthropicPrice', 'eesiWater', 'sbsNews', 'thirsty'],
@@ -435,7 +490,6 @@ const DATA = {
       jPerOutTok: 1.3,
       priceInUsdPer1M: 2.00,
       priceOutUsdPer1M: 15.00,
-      waterPerQueryMl: 4,
       reasoning: true,
       energyNote: 'decode-energy assumption (reasoning model; price approximate, see source note)',
       sources: ['wattgpu', 'tokensToWh', 'googlePrice', 'eesiWater', 'sbsNews', 'thirsty'],
@@ -450,7 +504,6 @@ const DATA = {
       jPerOutTok: 1.2,
       priceInUsdPer1M: 0.27,
       priceOutUsdPer1M: 1.10,
-      waterPerQueryMl: 4,
       energyNote: 'decode-energy assumption (mid-range of 2026 published measurements)',
       sources: ['wattgpu', 'tokensToWh', 'deepseekPrice', 'eesiWater', 'sbsNews', 'thirsty'],
     },
@@ -465,6 +518,7 @@ const DATA = {
   ],
 
   referenceCards: [
+    { value: '~0.31 Wh', label: 'peer-reviewed frontier-inference calibration', source: 'jouleInference' },
     { value: '~519 ml', label: 'water per 100-word AI prompt', source: 'eesiWater' },
     { value: '~2.9 Wh', label: 'IEA estimate: a ChatGPT query', source: 'sbsNews' },
     { value: '~0.3 Wh', label: 'a Google search (de Vries)', source: 'devries' },
@@ -517,7 +571,7 @@ const DATA = {
     ],
     waterBenchmark2030TrillionL: 9.3,
     macroWaterNotes: [
-      { text: 'Derived global data-centre water = electricity (TWh) x total WUE (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030).', sources: ['cellReports', 'eesiWater'] },
+      { text: 'Derived global data-centre water = electricity (TWh) x total WUE (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030). This is a transparent lower-bound scenario, not a measured global total.', sources: ['cellReports', 'eesiWater', 'npjWater', 'sustainableWater'] },
       { text: 'UNU-INWEH projects a much larger ~9.3 trillion L by 2030 once AI-specific footprint growth is included; the derived line is therefore a conservative lower bound.', sources: ['unricAi'] },
       { text: 'AI water footprint 2025: 312.5-764.6B L, roughly the entire global annual bottled-water market (Patterns 2026).', sources: ['cellReports'] },
       { text: 'Indirect (power-plant) water dominates and is under-reported: ~3.4 L/kWh actual vs ~1.04 L/kWh IEA-implied; only Meta reports it (Patterns 2026 / WSJ).', sources: ['cellReports', 'wsjWater'] },
@@ -537,7 +591,13 @@ const DATA = {
       { text: 'Australia data-centre demand could reach 21.4 TWh (9% of grid) by 2035 - up from ~4 TWh (2%) - with DCs possibly using 15% of grid power and 25% of Sydney water by then; Transgrid has 5.7 GW in formal connection agreements (AFR).', sources: ['afrHunger', 'afrAemo'] },
     ],
     synthesis: {
-      note: 'Collating global and Australian projections: global data-centre electricity roughly doubles from ~415 TWh (2024) to ~945 TWh (2030), and six leading AI firms alone rise from ~118 TWh to 239-295 TWh. Australia is a fast-growing share: AEMO sees one-eighth of current grid electricity consumed by data centres within a decade, tripling from ~4 TWh (~2%) today toward ~21.4 TWh (~9%) by 2035; Sydney DCs reach ~11% of available power (Melbourne ~8%) by 2030, and industry water demand triples from 5.5 GL to ~17 GL. Capital keeps flowing in - NextDC built a $6.6B war chest (incl. a $1B 100-year bond anchored by La Caisse), Firmus raised US$2B ($2.9B) at $230/share, and $150B+ is lined up in construction pipelines - while grid operators flag 5.7 GW of formal NSW connection agreements against an 11.4 GW "phantom" pipeline.',
+      cards: [
+        { value: '415 → 945 TWh', title: 'Global electricity', text: 'Projected global data-centre electricity from 2024 to 2030.', sources: ['aiServers', 'ieaEnergyAI'] },
+        { value: '~4 → 21.4 TWh', title: 'Australia demand', text: 'Data-centre electricity estimate from ~2% today toward ~9% by 2035.', sources: ['afrHunger', 'afrAemo'] },
+        { value: '5.5 → 17 GL', title: 'Australian water', text: 'Projected industry water demand by 2030; location and cooling method matter.', sources: ['climateCouncil'] },
+        { value: '21.6 GW / 5.4 GW', title: 'Pipeline vs queue', text: 'Announced pipeline versus AEMO connection queue; neither equals committed capacity.', sources: ['dcByte', 'aemoDc', 'climateCouncil'] },
+      ],
+      takeaway: 'Electricity, water and infrastructure demand are all rising, but the largest pipeline figures are uncertain: announced projects and connection requests are not the same as capacity that will actually be built.',
       sources: ['aiServers', 'concentratedSiting', 'afrAemo', 'afrGridNotReady', 'afrHunger', 'afrNextdcChest', 'afrNextdcBond', 'afrFirmus', 'abcDataCentres', 'climateCouncil', 'dcByte'],
     },
   },
@@ -557,6 +617,7 @@ const DATA = {
     wueSource: 'eesiWater',
     indirectLPerKWh: 3.4,
     indirectSource: 'cellReports',
+    sourceWueSource: 'npjWater',
     promptWaterPer100WordsMl: 519,
     promptWaterSource: 'eesiWater',
     promptWordsPerQuery: 300,

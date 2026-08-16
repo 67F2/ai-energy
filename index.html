@@ -222,6 +222,13 @@
     .ex-eq { font-size: 12px; color: var(--muted); }
     .compare-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     @media (max-width: 900px) { .compare-cards { grid-template-columns: repeat(2, 1fr); } }
+    .synthesis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .synthesis-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .synthesis-card .value { font-size: 21px; font-weight: 700; color: var(--accent); }
+    .synthesis-card h3 { font-size: 13px; margin: 6px 0 5px; color: var(--text); }
+    .synthesis-card p { font-size: 12px; line-height: 1.45; color: var(--muted); margin: 0; }
+    .synthesis-card a { color: var(--accent); }
+    @media (max-width: 900px) { .synthesis-grid { grid-template-columns: repeat(2, 1fr); } }
     .ex-group {
       font-size: 12px;
       text-transform: uppercase;
@@ -295,7 +302,7 @@
           <label>Grid: <select id="gridSelectExamples"></select></label>
         </div>
         <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
-        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs the selected y-axis, size = water (ml, see the sample legend), colour = task group. Hover a bubble for details. Energy, CO2e, water and cost for every example are shown in the cards below.</p>
+        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs the selected y-axis, size = water (ml), colour = task group. The <strong>K</strong> bubble is boiling a full kettle (~200 Wh, about seven cups). Its tooltip includes an illustrative all-in cost of about A$0.068 per boil, aligned to the USD cost axis using a dated AUD/USD reference rate. Its CO2e changes with the selected grid; kettle water volume is not comparable to the data-centre-water axis. Hover a bubble for details. Energy, CO2e, water and cost for every AI example are shown in the cards below. <a href="https://energysavingtrust.org.uk/wp-content/uploads/2022/11/Energy-Saving-Trust-Warm-Home-Hacks-guide-final.pdf" target="_blank" rel="noopener">Kettle source</a>.</p>
         <div id="staticExamples"></div>
       </div>
 
@@ -494,6 +501,8 @@
 
       <div class="card">
         <h2>Synthesis — where it's all heading</h2>
+        <div class="synthesis-grid" id="synthesisCards"></div>
+        <p class="hint" id="synthesisTakeaway" style="margin-top:14px;"></p>
         <div class="notes" id="synthesisNote" style="margin-top:8px;"></div>
       </div>
     </section>
@@ -507,7 +516,7 @@
           combined with your inputs: prefill and decode energy per token, PUE overhead, Australian grid carbon
           intensity (~500 g CO2e/kWh, IEA) and API list pricing. Water is derived from energy using the total
           data-centre WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI; 3.4 L/kWh indirect power-plant water,
-          Patterns 2026), plus a fixed per-provider baseline. Figures are mid-range assumptions
+          Patterns 2026). Figures are mid-range assumptions
           — real values vary by hardware, model version, batching, context length and provider location. CO2 depends
           heavily on grid mix; water depends on cooling technology and region. Treat results as order-of-magnitude estimates.
         </p>

@@ -17,7 +17,9 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   const costUsd =
     (promptTok / 1e6) * model.priceInUsdPer1M + (outTok / 1e6) * model.priceOutUsdPer1M;
   const wue = DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPerKWh || 0);
-  const waterMl = kWh * wue * 1000 + model.waterPerQueryMl;
+  // Primary water estimate uses source WUE only. Published prompt-level
+  // estimates use different system boundaries and remain reference figures.
+  const waterMl = kWh * wue * 1000;
   const gpuSec = joules / model.gpuPowerW;
 
   const scale = (f) => ({
@@ -208,6 +210,7 @@ const GROUP_COLORS = {
   'Vision & media': '#f6bd60',
   'Audio': '#84a98c',
   'Other': '#adb5bd',
+  'Household reference': '#e85d75',
 };
 
 function svgScatterChart(id, points, opts = {}) {
@@ -261,7 +264,7 @@ function svgScatterChart(id, points, opts = {}) {
   }
 
   points.forEach((p, pi) => {
-    const r = 4 + Math.min(16, Math.sqrt(p.size) * 2.2);
+    const r = p.reference ? 8 : 4 + Math.min(16, Math.sqrt(p.size) * 2.2);
     const jitterX = (pi * 37 % 9) - 4;
     const jitterY = (pi * 53 % 9) - 4;
     let cx = xAt(p.x) + jitterX, cy = yAt(p.y) + jitterY;
@@ -273,6 +276,10 @@ function svgScatterChart(id, points, opts = {}) {
     if (p.hollow) {
       circle.setAttribute('fill', 'none');
       circle.setAttribute('stroke-dasharray', '4 3');
+    }
+    if (p.reference) {
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke-width', '2.5');
     }
     svg.appendChild(circle);
     const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9, 'font-weight': '700', 'pointer-events': 'none' });
@@ -311,8 +318,13 @@ function svgScatterChart(id, points, opts = {}) {
   const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 10 });
   cap.textContent = 'Bubble size = water (ml)';
   svg.appendChild(cap);
+  if (points.some((p) => p.reference)) {
+    const capRef = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
+    capRef.textContent = 'K = kettle reference (not water-sized)';
+    svg.appendChild(capRef);
+  }
   if (points.some((p) => p.hollow)) {
-    const cap2 = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
+    const cap2 = svgEl('text', { x: lx, y: ly + (points.some((p) => p.reference) ? 40 : 24), fill: '#9aa5b1', 'font-size': 10 });
     cap2.textContent = 'Dashed = no list price';
     svg.appendChild(cap2);
   }
@@ -343,9 +355,42 @@ function buildExamplesScatter(metricKey = 'usd') {
       ex,
     };
   });
+  const kettleWh = 200;
+  const kettleAssumptions = DATA.kettle;
+  const kettleElectricityAud = kettleAssumptions.energyWh / 1000 * kettleAssumptions.electricityAudPerKWh;
+  const kettleCapitalAud = kettleAssumptions.purchaseAud / (kettleAssumptions.lifeYears * 365 * kettleAssumptions.fullBoilsPerDay);
+  const kettle = {
+    wh: kettleWh,
+    gCO2e: kettleWh / 1000 * gridG,
+    waterMl: kettleAssumptions.fullKettleWaterMl,
+    electricityAud: kettleElectricityAud,
+    capitalAud: kettleCapitalAud,
+    totalAud: kettleElectricityAud + kettleCapitalAud,
+    costUsd: (kettleElectricityAud + kettleCapitalAud) * kettleAssumptions.audUsd,
+  };
+  points.push({
+    x: kettle.wh,
+    // Full kettle (seven cups) boils ~1.75 L; place it at that real volume so the
+    // water axis stays honest, and explain the boundary in the tooltip.
+    y: metric.y(kettle),
+    size: 0,
+    color: GROUP_COLORS['Household reference'],
+    group: 'Household reference',
+    label: 'K',
+    reference: true,
+    kettle,
+  });
   svgScatterChart('examplesScatter', points, {
     yLabel: metric.label,
     tip: (p) => {
+      if (p.kettle) {
+        const e = fmtEnergyFixed(p.kettle.wh), c = fmtCo2Fixed(p.kettle.gCO2e);
+        return `<div class="tip-title">Full kettle (about seven cups)</div>
+          <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u}</div>
+          <div class="tip-metrics">💵 A$${p.kettle.totalAud.toFixed(3)} per boil · US$${p.kettle.costUsd.toFixed(3)} on chart</div>
+          <div class="tip-note">Cost assumption: A$${kettleAssumptions.purchaseAud} kettle, ${kettleAssumptions.lifeYears}-year life, ${kettleAssumptions.fullBoilsPerDay} full boils/day, and A$${kettleAssumptions.electricityAudPerKWh.toFixed(2)}/kWh. The electricity tariff varies by plan; capital cost is allocated across the assumed boils.</div>
+          <div class="tip-note">The chart position converts A$ to US$ at A$1 = US$${kettleAssumptions.audUsd.toFixed(2)}; exchange rates move over time. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L for seven cups) — that is water boiled, not a data-centre water footprint, so treat the number as a household reference only. ${src('kettleEnergy')} · ${src('aerTariff')} · ${src('rbaFx')}</div>`;
+      }
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
       const cost = r.costUsd == null ? 'no list price' : fmtCostFixed(r.costUsd);
@@ -662,7 +707,7 @@ function renderMethodology() {
       <div class="method">
         <h3>⚡ Energy</h3>
         <p><code>Wh = (promptTok × J/input + outTok × J/output) × PUE ÷ 3600</code></p>
-        <p class="hint">Per-token joules from measured inference on modern GPUs (${src('tokensToWh')}, ${src('wattgpu')}); PUE overhead ${pue}× applied to every query (${src('ieaEnergyAI')}).</p>
+        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks (${src('tokensToWh')}, ${src('wattgpu')}, ${src('tokenPowerBench')}); the default is calibrated against ${src('jouleInference')}. PUE overhead ${pue}× is an adjustable assumption.</p>
       </div>
       <div class="method">
         <h3>🌡️ CO2</h3>
@@ -671,8 +716,8 @@ function renderMethodology() {
       </div>
       <div class="method">
         <h3>💧 Water</h3>
-        <p><code>ml = kWh × ${wueTotal} L/kWh × 1000 + per-query baseline</code></p>
-        <p class="hint">Total WUE = ${wm.wueLPerKWh} L/kWh direct cooling (${src('eesiWater')}) + ${wm.indirectLPerKWh} L/kWh indirect power-plant water (${src('cellReports')}), plus a fixed provider baseline per query.</p>
+        <p><code>ml = kWh × ${wueTotal} L/kWh × 1000</code></p>
+        <p class="hint">Primary estimate uses direct WUE ${wm.wueLPerKWh} L/kWh (${src('eesiWater')}) plus ${wm.indirectLPerKWh} L/kWh indirect electricity water (${src('cellReports')}). The source-WUE framework and its regional limits are described by ${src('npjWater')}. Published prompt-level figures such as 519 ml are shown separately because their system boundaries differ.</p>
       </div>
       <div class="method">
         <h3>💵 Cost</h3>
@@ -708,7 +753,22 @@ function renderRightToolForTask() {
 function renderAuContext() {
   $('auNotes').innerHTML = noteListHtml(DATA.auContext.notes || []);
   const synthesis = DATA.macro.synthesis;
-  $('synthesisNote').innerHTML = noteListHtml([{ text: synthesis.note, sources: synthesis.sources }]);
+  const sourceLinks = (ids) => (ids || [])
+    .map((id) => {
+      const s = sourceById(id);
+      return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+    })
+    .filter(Boolean)
+    .join(' · ');
+  $('synthesisCards').innerHTML = (synthesis.cards || []).map((c) => `
+    <div class="synthesis-card">
+      <div class="value">${c.value}</div>
+      <h3>${c.title}</h3>
+      <p>${c.text}</p>
+      <p style="margin-top:8px;">${sourceLinks(c.sources)}</p>
+    </div>`).join('');
+  $('synthesisTakeaway').textContent = synthesis.takeaway || '';
+  $('synthesisNote').innerHTML = noteListHtml([{ text: 'Detailed evidence and financing context:', sources: synthesis.sources }]);
   const buildOutNotes = [
     { text: 'Announced pipeline: ~21.6 GW (Data Centres Australia / DC Byte). Not directly comparable to operational capacity — most announced projects never get built.', sources: ['dcByte'] },
     { text: 'AEMO disclosed 5.4 GW across 11 projects in its transmission connection queue (June 2026) — connection interest, not committed builds (~60% NSW / 40% VIC).', sources: ['aemoDc'] },
