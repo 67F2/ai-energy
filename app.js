@@ -121,7 +121,7 @@ function niceMax(v) {
   return f * mag;
 }
 
-function svgBarChart(id, labels, values, colors) {
+function svgBarChart(id, labels, values, colors, opts = {}) {
   const host = $(id);
   host.innerHTML = '';
   const maxLines = Math.max.apply(null, labels.map((l) => String(l).split('\n').length));
@@ -138,6 +138,11 @@ function svgBarChart(id, labels, values, colors) {
     const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 11 });
     t.textContent = fmtNum(val);
     svg.appendChild(t);
+  }
+  if (opts.yUnit) {
+    const yt = svgEl('text', { x: 13, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11, transform: `rotate(-90 13 ${padT + innerH / 2})` });
+    yt.textContent = opts.yUnit;
+    svg.appendChild(yt);
   }
   values.forEach((v, i) => {
     const h = innerH * v / max, x = padL + slot * i + (slot - barW) / 2, y = padT + innerH - h;
@@ -320,7 +325,7 @@ function svgScatterChart(id, points, opts = {}) {
   svg.appendChild(cap);
   if (points.some((p) => p.reference)) {
     const capRef = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 10 });
-    capRef.textContent = 'K = kettle reference (not water-sized)';
+    capRef.textContent = 'K = kettle reference (fixed-size bubble)';
     svg.appendChild(capRef);
   }
   if (points.some((p) => p.hollow)) {
@@ -384,12 +389,12 @@ function buildExamplesScatter(metricKey = 'usd') {
     yLabel: metric.label,
     tip: (p) => {
       if (p.kettle) {
-        const e = fmtEnergyFixed(p.kettle.wh), c = fmtCo2Fixed(p.kettle.gCO2e);
+        const e = fmtEnergyFixed(p.kettle.wh), c = fmtCo2Fixed(p.kettle.gCO2e), w = fmtWaterFixed(p.kettle.waterMl);
         return `<div class="tip-title">Full kettle (about seven cups)</div>
-          <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u}</div>
+          <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u}</div>
           <div class="tip-metrics">💵 A$${p.kettle.totalAud.toFixed(3)} per boil · US$${p.kettle.costUsd.toFixed(3)} on chart</div>
           <div class="tip-note">Cost assumption: A$${kettleAssumptions.purchaseAud} kettle, ${kettleAssumptions.lifeYears}-year life, ${kettleAssumptions.fullBoilsPerDay} full boils/day, and A$${kettleAssumptions.electricityAudPerKWh.toFixed(2)}/kWh. The electricity tariff varies by plan; capital cost is allocated across the assumed boils.</div>
-          <div class="tip-note">The chart position converts A$ to US$ at A$1 = US$${kettleAssumptions.audUsd.toFixed(2)}; exchange rates move over time. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L for seven cups) — that is water boiled, not a data-centre water footprint, so treat the number as a household reference only. ${src('kettleEnergy')} · ${src('aerTariff')} · ${src('rbaFx')}</div>`;
+          <div class="tip-note">The chart position converts A$ to US$ at A$1 = US$${kettleAssumptions.audUsd.toFixed(2)}; exchange rates move over time. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L for seven cups) — that is water boiled, not a data-centre water footprint, so treat the number as a household reference only.</div>`;
       }
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
@@ -411,9 +416,10 @@ function buildEnergyChart() {
   );
   svgBarChart(
     'energyChart',
-    [...labels, 'Google search\n(headline)', 'ChatGPT estimate\n(IEA via SBS)'],
+    [...labels, 'Google search\n(headline)', 'ChatGPT query\nIEA via SBS\n(headline)'],
     [...values, 0.3, 2.9],
-    ['#5b8ff9', '#7c5cd6', '#f6bd60', '#f28482', '#84a98c', '#adb5bd', '#adb5bd']
+    ['#5b8ff9', '#7c5cd6', '#f6bd60', '#f28482', '#84a98c', '#adb5bd', '#adb5bd'],
+    { yUnit: 'Wh' }
   );
 }
 
@@ -423,7 +429,7 @@ function buildCostChart() {
   const values = DATA.models.map((m) =>
     compute(m, 200, 400, 1, gridG, 1.35).perQuery.costUsd * 1000
   );
-  svgBarChart('costChart', labels, values, DATA.models.map(() => '#5b8ff9'));
+  svgBarChart('costChart', labels, values, DATA.models.map(() => '#5b8ff9'), { yUnit: 'USD per 1,000 queries' });
 }
 
 function buildMacroChart() {

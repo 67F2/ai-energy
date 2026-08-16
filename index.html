@@ -302,7 +302,7 @@
           <label>Grid: <select id="gridSelectExamples"></select></label>
         </div>
         <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
-        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs the selected y-axis, size = water (ml), colour = task group. The <strong>K</strong> bubble is boiling a full kettle (~200 Wh, about seven cups). Its tooltip includes an illustrative all-in cost of about A$0.068 per boil, aligned to the USD cost axis using a dated AUD/USD reference rate. Its CO2e changes with the selected grid; kettle water volume is not comparable to the data-centre-water axis. Hover a bubble for details. Energy, CO2e, water and cost for every AI example are shown in the cards below. <a href="https://energysavingtrust.org.uk/wp-content/uploads/2022/11/Energy-Saving-Trust-Warm-Home-Hacks-guide-final.pdf" target="_blank" rel="noopener">Kettle source</a>.</p>
+        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs the selected y-axis, size = water (ml), colour = task group. The <strong>K</strong> bubble is boiling a full kettle (~200 Wh, about seven cups). Its tooltip includes an illustrative all-in cost of about A$0.068 per boil, aligned to the USD cost axis using a dated AUD/USD reference rate. Its CO2e changes with the selected grid; on the water axis the K bubble sits at its real full-boil volume (~1.75 L) — water boiled at home, not a data-centre footprint. Hover a bubble for details. Energy, CO2e, water and cost for every AI example are shown in the cards below. <a href="https://energysavingtrust.org.uk/wp-content/uploads/2022/11/Energy-Saving-Trust-Warm-Home-Hacks-guide-final.pdf" target="_blank" rel="noopener">Kettle source</a> · <a href="https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill" target="_blank" rel="noopener">Electricity tariff</a> · <a href="https://www.rba.gov.au/exchange-rates-overview.html" target="_blank" rel="noopener">AUD/USD rate</a>.</p>
         <div id="staticExamples"></div>
       </div>
 
@@ -446,7 +446,7 @@
         <div class="card">
           <h2>Cost per 1,000 queries by model</h2>
           <div class="chart-box"><div id="costChart"></div></div>
-          <p class="hint">API list prices per 1M tokens.</p>
+          <p class="hint">API list prices per 1M tokens; bars show cost per 1,000 queries.</p>
         </div>
       </div>
 
@@ -468,6 +468,13 @@
     </section>
 
     <section class="tab" id="tab-outlook">
+      <div class="card">
+        <h2>Synthesis — where it's all heading</h2>
+        <div class="synthesis-grid" id="synthesisCards"></div>
+        <p class="hint" id="synthesisTakeaway" style="margin-top:14px;"></p>
+        <div class="notes" id="synthesisNote" style="margin-top:8px;"></div>
+      </div>
+
       <div class="card">
         <h2>Macro context — AI and electricity</h2>
         <p class="hint" style="margin-bottom:12px;">Data-centre demand is projected to roughly double by 2030, with AI driving a disproportionate share. Projections from IEA 2025 and 2026 research preprints.</p>
@@ -497,13 +504,6 @@
         <p class="hint" style="margin-bottom:12px;">Operational capacity is forecast to grow from ~1.4 GW to ~3.2 GW by 2030 (Data Centres Australia / DC Byte). The much larger announced numbers below are not directly comparable to operational capacity — they are aspirational pipelines and connection queues, and "phantom demand" means many applications never get built.</p>
         <div class="chart-box small" style="max-width:520px;margin:0 auto;"><div id="auPipelineChart"></div></div>
         <div class="notes" id="auBuildOutNotes" style="margin-top:14px;"></div>
-      </div>
-
-      <div class="card">
-        <h2>Synthesis — where it's all heading</h2>
-        <div class="synthesis-grid" id="synthesisCards"></div>
-        <p class="hint" id="synthesisTakeaway" style="margin-top:14px;"></p>
-        <div class="notes" id="synthesisNote" style="margin-top:8px;"></div>
       </div>
     </section>
 
