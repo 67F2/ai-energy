@@ -1,4 +1,4 @@
-const VERSION = 'v9';
+const VERSION = 'v10';
 
 const SOURCES = {
   wattgpu: {
@@ -90,7 +90,7 @@ const SOURCES = {
     ref: 'Joule, 2026, 102430',
     url: 'https://doi.org/10.1016/j.joule.2026.102430',
     cat: 'peer',
-    note: 'Peer-reviewed frontier-inference study: ~0.31 Wh per standard query; reasoning queries with ~5,000 output tokens use roughly 13x more energy. Useful calibration, not a universal provider measurement.',
+    note: 'Peer-reviewed frontier-inference study (Joule, April 2026): ~0.31 Wh per standard query (IQR 0.16-0.60); reasoning queries with ~5,000 output tokens use roughly 13x more energy. This is the most recent peer-reviewed calibration and aligns with the Epoch AI estimate of ~0.3 Wh; later papers are preprints, not yet peer-reviewed. Useful calibration, not a universal provider measurement.',
   },
   tokenPowerBench: {
     label: 'TokenPowerBench: Benchmarking the Power Consumption of LLM Inference',
@@ -333,6 +333,27 @@ const SOURCES = {
     url: 'https://www.wsj.com/tech/ai/ai-data-centers-water-use-901e2902',
     cat: 'journalism',
     note: 'Only Meta tallies indirect water used at the power plants feeding its data centres; no legal obligation to report full scope. US indirect water consumption ~12x the direct figure (Lawrence Berkeley National Laboratory, 2024). Companies spending ~$1T on AI infrastructure.',
+  },
+  icctEv: {
+    label: 'A Global Comparison of the Life-Cycle Greenhouse Gas Emissions of Combustion Engine and Electric Passenger Cars',
+    ref: 'ICCT, 2021',
+    url: 'https://theicct.org/publication/global-lca-passenger-cars-jul2021/',
+    cat: 'institution',
+    note: 'Manufacturing a mid-size battery EV (incl. battery) ≈ 7 t CO2e; ~70% of that is the battery. Whole-life emissions still ~2x lower than a petrol car over 150,000-200,000 km.',
+  },
+  owidFood: {
+    label: 'Environmental Impacts of Food and Agriculture (by food type)',
+    ref: 'Poore & Nemecek 2018, Science; via Our World in Data',
+    url: 'https://ourworldindata.org/environmental-impacts-of-food',
+    cat: 'peer',
+    note: 'Peer-reviewed global averages: ~10.8 kg CO2e per kg of cheese; ~0.34 kg CO2e per kg of root vegetables (carrots).',
+  },
+  carboncloudCarrots: {
+    label: 'Carrots climate report (CarbonCloud verified)',
+    ref: 'CarbonCloud ClimateHub, 2026',
+    url: 'https://apps.carboncloud.com/climatehub/product-reports/id/89115431439',
+    cat: 'institution',
+    note: 'Verified life-cycle figure ~0.4 kg CO2e per kg carrots at the store shelf (UK).',
   },
   dcByte: {
     label: 'Australian Data Centre Forecast Report',

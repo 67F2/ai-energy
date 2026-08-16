@@ -239,6 +239,14 @@
     .ex-group:first-of-type { margin-top: 0; }
     .ex-src { font-size: 12px; color: var(--muted); margin-top: 6px; }
     .ex-src a { font-size: 12px; }
+    .group-row td {
+      background: var(--panel2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 12px;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
     .method-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -282,15 +290,6 @@
 
     <section class="tab active" id="tab-examples">
       <div class="card">
-        <h2>Right tool for the task</h2>
-        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job. Resource use: 0–3 dots (near-zero to high).</p>
-        <div style="overflow-x:auto;"><table id="toolTable">
-          <thead><tr><th>Task</th><th>Best tool</th><th>Resource use</th><th>Why</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-
-      <div class="card">
         <h2>Common AI queries and what they really cost</h2>
         <p class="hint" style="margin-bottom:16px;">Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter, including the grid.</p>
         <div class="scatter-controls">
@@ -302,8 +301,17 @@
           <label>Grid: <select id="gridSelectExamples"></select></label>
         </div>
         <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
-        <p class="hint" style="margin-bottom:16px;">Each bubble is one example: position = energy (Wh) vs the selected y-axis, size = water (ml), colour = task group. The <strong>K</strong> bubble is boiling a full kettle (~160 Wh, about 1.75 L). Its tooltip includes an illustrative all-in cost of about A$0.057 per boil, aligned to the USD cost axis using a dated AUD/USD reference rate. Its CO2e changes with the selected grid; on the water axis the K bubble sits at its real full-boil volume (~1.75 L) — water boiled at home, not a data-centre footprint. Hover a bubble for details. Energy, CO2e, water and cost for every AI example are shown in the cards below. <a href="https://www.energyaustralia.com.au/sites/default/files/2021-11/one-dollar-electricity.pdf" target="_blank" rel="noopener">Kettle source</a> · <a href="https://www.choice.com.au/home-and-living/kitchen/kettles-and-tea-makers/buying-guides/kettles" target="_blank" rel="noopener">CHOICE</a> · <a href="https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill" target="_blank" rel="noopener">Electricity tariff</a> · <a href="https://www.rba.gov.au/exchange-rates-overview.html" target="_blank" rel="noopener">AUD/USD rate</a>.</p>
+        <p class="hint" style="margin-bottom:16px;">Each numbered bubble is one example. Position = energy (Wh) vs the selected axis, size = water, colour = task group. The <strong>K</strong> bubble is boiling a kettle (~160 Wh, about 1.75 L, about A$0.057 per boil). Hover any bubble to see its numbers. Energy, CO2e, water and cost for every example are also in the table below. <a href="https://www.energyaustralia.com.au/sites/default/files/2021-11/one-dollar-electricity.pdf" target="_blank" rel="noopener">Kettle source</a> · <a href="https://www.choice.com.au/home-and-living/kitchen/kettles-and-tea-makers/buying-guides/kettles" target="_blank" rel="noopener">CHOICE</a> · <a href="https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill" target="_blank" rel="noopener">Electricity tariff</a>.</p>
         <div id="staticExamples"></div>
+      </div>
+
+      <div class="card">
+        <h2>Right tool for the task</h2>
+        <p class="hint" style="margin-bottom:12px;">From The Conversation: using ChatGPT for everything is "a large truck to deliver one envelope". Match the tool to the job. Resource use: 0–3 dots (near-zero to high).</p>
+        <div style="overflow-x:auto;"><table id="toolTable">
+          <thead><tr><th>Task</th><th>Best tool</th><th>Resource use</th><th>Why</th></tr></thead>
+          <tbody id="toolBody"></tbody>
+        </table></div>
       </div>
 
       <div class="card">
@@ -313,7 +321,7 @@
 
       <div class="card">
         <h2>Training &amp; embodied footprint — the bigger picture</h2>
-        <p class="hint" style="margin-bottom:12px;">A single query is only the inference (running) part. Building a model — and the hardware it runs on — carries its own footprint. Per-query inference can still dominate total energy use because it happens billions of times.</p>
+        <p class="hint" style="margin-bottom:12px;">A single query is only the inference (running) part — running the model to answer you. "Embodied" means the footprint of <em>building</em> it: manufacturing the chips and servers it runs on, plus training the model itself. That one-time build cost is real but is spread across billions of queries, so running (inference) usually still adds up to more overall.</p>
         <div class="compare-cards" id="trainingCards"></div>
         <div class="chart-box small" style="max-width:560px;margin:16px auto 0;"><div id="trainingChart"></div></div>
         <p class="hint" style="margin-top:10px;">Linear scale shows absolute bar lengths; smaller values may be difficult to see beside training emissions. Exact values are shown on each bar.</p>
@@ -326,12 +334,12 @@
       </div>
 
       <div class="card">
-        <h2>Comparison to other activities</h2>
-        <p class="hint" style="margin-bottom:12px;">A single query is small, but your monthly AI use adds up. See the calculator's "equal to" panel for personalised equivalents. Context from sources:</p>
+        <h2>Your AI use vs everyday things</h2>
+        <p class="hint" style="margin-bottom:12px;">A useful way to feel the numbers: how does a query or a model compare with everyday things? "Queries" below assume one ChatGPT-style query on the selected grid (<span id="everydayGridBadge"></span>).</p>
         <div style="overflow-x:auto;">
           <table>
-            <thead><tr><th>Activity / metric</th><th>Magnitude</th><th>Reference</th></tr></thead>
-            <tbody id="headlineBody"></tbody>
+            <thead><tr><th>Everyday thing</th><th>CO2e footprint</th><th>≈ In AI terms</th><th>Reference</th></tr></thead>
+            <tbody id="everydayBody"></tbody>
           </table>
         </div>
       </div>

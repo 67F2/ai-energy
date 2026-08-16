@@ -390,17 +390,17 @@ function buildExamplesScatter(metricKey = 'usd') {
     tip: (p) => {
       if (p.kettle) {
         const e = fmtEnergyFixed(p.kettle.wh), c = fmtCo2Fixed(p.kettle.gCO2e), w = fmtWaterFixed(p.kettle.waterMl);
-        return `<div class="tip-title">Full kettle (about 1.75 L)</div>
+        return `<div class="tip-title">K. Boiling a kettle</div>
           <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u}</div>
           <div class="tip-metrics">💵 A$${p.kettle.totalAud.toFixed(3)} per boil · US$${p.kettle.costUsd.toFixed(3)} on chart</div>
-          <div class="tip-note">Cost assumption: A$${kettleAssumptions.purchaseAud} kettle, ${kettleAssumptions.lifeYears}-year life, ${kettleAssumptions.fullBoilsPerDay} full boils/day, and A$${kettleAssumptions.electricityAudPerKWh.toFixed(2)}/kWh. The electricity tariff varies by plan; capital cost is allocated across the assumed boils.</div>
-          <div class="tip-note">The chart position converts A$ to US$ at A$1 = US$${kettleAssumptions.audUsd.toFixed(2)}; exchange rates move over time. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L) — that is water boiled, not a data-centre water footprint, so treat the number as a household reference only.</div>`;
+          <div class="tip-note">Cost assumption: A$${kettleAssumptions.purchaseAud} kettle, ${kettleAssumptions.lifeYears}-year life, ${kettleAssumptions.fullBoilsPerDay} full boils/day, and A$${kettleAssumptions.electricityAudPerKWh.toFixed(2)}/kWh. The electricity tariff varies by plan; capital cost is allocated across the assumed boils. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L) — that is water boiled at home, not a data-centre water footprint.</div>`;
       }
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
       const cost = r.costUsd == null ? 'no list price' : fmtCostFixed(r.costUsd);
       const costCell = r.costUsd == null ? 'no list price' : `${cost.v}${cost.u}`;
-      return `<div class="tip-title">${p.ex.desc}</div>
+      const num = (EXAMPLES.indexOf(p.ex) + 1).toString();
+      return `<div class="tip-title">${num}. ${p.ex.desc}</div>
         <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u} · 💵 ${costCell}</div>
         <div class="tip-metrics">${exampleModelName(p.ex)}</div>
         ${p.ex.note ? `<div class="tip-note">${p.ex.note}</div>` : ''}`;
@@ -552,16 +552,6 @@ function exampleModelName(ex) {
   return m ? m.name : '';
 }
 
-function exampleChips(ex, gridG, pue) {
-  const r = exampleResult(ex, gridG, pue).perQuery;
-  return `<div class="ex-metrics">
-    <span class="chip">⚡ ${fmtEnergyFixed(r.wh).v} ${fmtEnergyFixed(r.wh).u}</span>
-    <span class="chip">🌡️ ${fmtCo2Fixed(r.gCO2e).v} ${fmtCo2Fixed(r.gCO2e).u}</span>
-    <span class="chip">💧 ${fmtWaterFixed(r.waterMl).v} ${fmtWaterFixed(r.waterMl).u}</span>
-    <span class="chip">💵 ${r.costUsd == null ? '—' : fmtCostFixed(r.costUsd).v + fmtCostFixed(r.costUsd).u}</span>
-  </div>`;
-}
-
 function exampleSourceLinks(ex) {
   if (!ex.sources || !ex.sources.length) return '';
   const links = ex.sources
@@ -662,20 +652,6 @@ function renderCompareTab() {
     .join('');
 }
 
-function renderHeadlineRefs() {
-  const rows = DATA.headlineRefs
-    .map((h) => {
-      const s = sourceById(h.source);
-      return `<tr>
-        <td>${h.label}</td>
-        <td>${h.value} ${h.unit}</td>
-        <td><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a></td>
-      </tr>`;
-    })
-    .join('');
-  $('headlineBody').innerHTML = rows;
-}
-
 const SOURCE_CATS = [
   { id: 'peer', label: 'Peer-reviewed papers (most trusted)', color: '#5b8ff9', desc: 'Journal or top-conference peer review; figures carry the strongest weight.' },
   { id: 'institution', label: 'Institutional & government reports', color: '#84a98c', desc: 'IEA, UN, EPA, government agencies and policy institutes.' },
@@ -754,7 +730,7 @@ function renderRightToolForTask() {
       </tr>`;
     })
     .join('');
-  $('toolTable').innerHTML = rows;
+  $('toolBody').innerHTML = rows;
 }
 
 function renderAuContext() {
@@ -895,18 +871,30 @@ function renderStaticExamples() {
       const rows = groups[g]
         .map((ex) => {
           idx += 1;
-          return `<div class="ex-row">
-      <div class="ex-title">${idx}. ${ex.desc} <span class="ex-model">${exampleModelName(ex)}</span></div>
-      ${exampleChips(ex, gridG, pue)}
-      <div class="ex-eq">${exampleEqText(ex, gridG, pue)}</div>
-      ${exampleSourceLinks(ex)}
-    </div>`;
+          const r = exampleResult(ex, gridG, pue).perQuery;
+          const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
+          const toks = ex.fixedWh != null ? '—' : `${(ex.promptTok / 1000).toFixed(1)}k / ${(ex.outTok / 1000).toFixed(1)}k`;
+          const costCell = r.costUsd == null ? '—' : fmtCostFixed(r.costUsd).v + fmtCostFixed(r.costUsd).u;
+          return `<tr>
+            <td>${idx}</td>
+            <td>${ex.desc}</td>
+            <td>${exampleModelName(ex)}<br><span class="hint">${toks}</span></td>
+            <td>${e.v} ${e.u}</td>
+            <td>${c.v} ${c.u}</td>
+            <td>${w.v} ${w.u}</td>
+            <td>${costCell}</td>
+            <td class="why">${exampleEqText(ex, gridG, pue)}</td>
+            <td class="why">${ex.note}${exampleSourceLinks(ex)}</td>
+          </tr>`;
         })
         .join('');
-      return `<h3 class="ex-group">${g}</h3>${rows}`;
+      return `<tr class="group-row"><td colspan="9"><strong>${g}</strong></td></tr>${rows}`;
     })
     .join('');
-  $('staticExamples').innerHTML = summary;
+  $('staticExamples').innerHTML = `<div style="overflow-x:auto;"><table>
+    <thead><tr><th>#</th><th>Example</th><th>Model</th><th>Energy</th><th>CO2e</th><th>Water</th><th>Cost</th><th>≈ Everyday equivalent</th><th>Note &amp; sources</th></tr></thead>
+    <tbody>${summary}</tbody>
+  </table></div>`;
 
   const wueTotal = wm.wueLPerKWh + (wm.indirectLPerKWh || 0);
 
@@ -928,6 +916,24 @@ function renderStaticExamples() {
     .join('');
   $('trainingCards').innerHTML = trainCards;
   buildTrainingChart();
+  renderEverydayTable(gridG);
+}
+
+function renderEverydayTable(gridG) {
+  const perQueryG = 0.31 / 1000 * gridG;
+  const queriesFor = (kgCo2e) => Math.round((kgCo2e * 1000) / perQueryG).toLocaleString();
+  const evTraining = Math.round(284 / 7);
+  const rows = [
+    { thing: 'Manufacturing a new EV (incl. battery)', footprint: '~7 t CO2e', ai: `Training a GPT-3-era model (~284 t CO2e) is the carbon of about ${evTraining} new EVs — so one EV is roughly 1/${evTraining} of a training run`, source: 'icctEv' },
+    { thing: 'A block of cheese (250 g)', footprint: '~2.7 kg CO2e', ai: `≈ ${queriesFor(2.7)} ChatGPT queries`, source: 'owidFood' },
+    { thing: 'Growing 10 kg of carrots', footprint: '~4 kg CO2e', ai: `≈ ${queriesFor(4)} ChatGPT queries`, source: 'carboncloudCarrots' },
+    { thing: 'One ChatGPT query (Joule 2026 median)', footprint: `~${(perQueryG).toFixed(3)} g CO2e`, ai: '= the baseline query', source: 'jouleInference' },
+  ];
+  $('everydayGridBadge').textContent = `${DATA.gridIntensity.label} ~${gridG} g CO2e/kWh`;
+  $('everydayBody').innerHTML = rows.map((r) => {
+    const s = sourceById(r.source);
+    return `<tr><td>${r.thing}</td><td>${r.footprint}</td><td class="why">${r.ai}</td><td>${s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : ''}</td></tr>`;
+  }).join('');
 }
 
 function wueSourceLink(id) {
@@ -1082,7 +1088,6 @@ document.addEventListener('DOMContentLoaded', () => {
   buildMacroChart();
   buildMacroWaterChart();
   renderMacroWaterNotes();
-  renderHeadlineRefs();
   renderSources();
   renderMethodology();
   renderMacroNotes();
