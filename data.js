@@ -1,4 +1,4 @@
-const VERSION = 'v6';
+const VERSION = 'v7';
 
 const SOURCES = {
   wattgpu: {
@@ -114,11 +114,18 @@ const SOURCES = {
     note: 'Peer-reviewed global scenario model separating on-site cooling, off-site electricity water and embodied hardware water; useful for uncertainty ranges rather than a single fixed factor.',
   },
   kettleEnergy: {
-    label: 'Energy Saving Trust household energy guide',
-    ref: 'Energy Saving Trust, 2022',
-    url: 'https://energysavingtrust.org.uk/wp-content/uploads/2022/11/Energy-Saving-Trust-Warm-Home-Hacks-guide-final.pdf',
+    label: 'EnergyAustralia — what you can do with $1 of electricity',
+    ref: 'EnergyAustralia, 2021',
+    url: 'https://www.energyaustralia.com.au/sites/default/files/2021-11/one-dollar-electricity.pdf',
     cat: 'institution',
-    note: 'A full kettle (about seven cups) is estimated at roughly 0.2 kWh, or 200 Wh. Actual use varies with volume, starting temperature and kettle efficiency.',
+    note: 'Boiling 1.5 L of water from 20°C to 100°C with a 2.2 kW electric kettle requires about 0.14 kWh (~4¢ per boil); scaled to a 1.75 L full kettle that is roughly 0.16 kWh. Actual use varies with volume, starting temperature and kettle efficiency.',
+  },
+  choiceKettle: {
+    label: 'CHOICE — kettle buying guide',
+    ref: 'CHOICE, 2025',
+    url: 'https://www.choice.com.au/home-and-living/kitchen/kettles-and-tea-makers/buying-guides/kettles',
+    cat: 'institution',
+    note: 'Boiling a full kettle a couple of times a day over the course of a year costs about $32 at 40¢/kWh; an independent Australian consumer-advice cross-check on the kettle energy assumption.',
   },
   aerTariff: {
     label: 'Australian Energy Regulator household electricity pricing guide',
@@ -415,7 +422,7 @@ const SOURCES = {
 
 const DATA = {
   kettle: {
-    energyWh: 200,
+    energyWh: 160,
     purchaseAud: 50,
     lifeYears: 5,
     fullBoilsPerDay: 2,

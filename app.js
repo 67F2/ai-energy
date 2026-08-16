@@ -360,7 +360,7 @@ function buildExamplesScatter(metricKey = 'usd') {
       ex,
     };
   });
-  const kettleWh = 200;
+  const kettleWh = DATA.kettle.energyWh;
   const kettleAssumptions = DATA.kettle;
   const kettleElectricityAud = kettleAssumptions.energyWh / 1000 * kettleAssumptions.electricityAudPerKWh;
   const kettleCapitalAud = kettleAssumptions.purchaseAud / (kettleAssumptions.lifeYears * 365 * kettleAssumptions.fullBoilsPerDay);
@@ -375,7 +375,7 @@ function buildExamplesScatter(metricKey = 'usd') {
   };
   points.push({
     x: kettle.wh,
-    // Full kettle (seven cups) boils ~1.75 L; place it at that real volume so the
+    // Full kettle boils ~1.75 L; place it at that real volume so the
     // water axis stays honest, and explain the boundary in the tooltip.
     y: metric.y(kettle),
     size: 0,
@@ -390,11 +390,11 @@ function buildExamplesScatter(metricKey = 'usd') {
     tip: (p) => {
       if (p.kettle) {
         const e = fmtEnergyFixed(p.kettle.wh), c = fmtCo2Fixed(p.kettle.gCO2e), w = fmtWaterFixed(p.kettle.waterMl);
-        return `<div class="tip-title">Full kettle (about seven cups)</div>
+        return `<div class="tip-title">Full kettle (about 1.75 L)</div>
           <div class="tip-metrics">⚡ ${e.v} ${e.u} · 🌡️ ${c.v} ${c.u} · 💧 ${w.v} ${w.u}</div>
           <div class="tip-metrics">💵 A$${p.kettle.totalAud.toFixed(3)} per boil · US$${p.kettle.costUsd.toFixed(3)} on chart</div>
           <div class="tip-note">Cost assumption: A$${kettleAssumptions.purchaseAud} kettle, ${kettleAssumptions.lifeYears}-year life, ${kettleAssumptions.fullBoilsPerDay} full boils/day, and A$${kettleAssumptions.electricityAudPerKWh.toFixed(2)}/kWh. The electricity tariff varies by plan; capital cost is allocated across the assumed boils.</div>
-          <div class="tip-note">The chart position converts A$ to US$ at A$1 = US$${kettleAssumptions.audUsd.toFixed(2)}; exchange rates move over time. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L for seven cups) — that is water boiled, not a data-centre water footprint, so treat the number as a household reference only.</div>`;
+          <div class="tip-note">The chart position converts A$ to US$ at A$1 = US$${kettleAssumptions.audUsd.toFixed(2)}; exchange rates move over time. CO2e is derived from the selected grid (${gridG} g/kWh). On the water axis the K bubble sits at its real volume (~${(kettleAssumptions.fullKettleWaterMl / 1000).toFixed(2)} L) — that is water boiled, not a data-centre water footprint, so treat the number as a household reference only.</div>`;
       }
       const r = exampleResult(p.ex, gridG, pue).perQuery;
       const e = fmtEnergyFixed(r.wh), c = fmtCo2Fixed(r.gCO2e), w = fmtWaterFixed(r.waterMl);
