@@ -416,9 +416,9 @@ function buildEnergyChart() {
   );
   svgBarChart(
     'energyChart',
-    [...labels, 'Google search\n(headline)', 'ChatGPT query\nIEA via SBS\n(headline)'],
-    [...values, 0.3, 2.9],
-    ['#5b8ff9', '#7c5cd6', '#f6bd60', '#f28482', '#84a98c', '#adb5bd', '#adb5bd'],
+    [...labels, 'Google search\n(headline)'],
+    [...values, 0.3],
+    ['#5b8ff9', '#7c5cd6', '#f6bd60', '#f28482', '#84a98c', '#adb5bd'],
     { yUnit: 'Wh' }
   );
 }
