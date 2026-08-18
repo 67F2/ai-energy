@@ -826,7 +826,7 @@ function render() {
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
 
   bindText('gridLabel', `Grid intensity: ${gridG} g CO2e/kWh (${DATA.gridIntensity.label})`);
-  bindText('gridHint', `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}). CO2e figures recompute with this grid; water follows energy use and data-centre WUE.`);
+  $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}). CO2e figures recompute with this grid; water follows energy use and data-centre WUE.`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
   bindText('outLabel', `Output tokens: ${outTok.toLocaleString()}`);
