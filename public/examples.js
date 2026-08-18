@@ -86,7 +86,7 @@ const EXAMPLES = [
     model: 'deepseekv3',
     promptTok: 400,
     outTok: 700,
-    note: 'Low-cost MoE model.',
+    note: 'Low-cost efficient model.',
     sources: ['tokensToWh', 'vllmConfigs'],
   },
   {

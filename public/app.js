@@ -33,25 +33,25 @@ function svgBarChart(id, labels, values, colors, opts = {}) {
   for (let i = 0; i <= ticks; i++) {
     const val = max * i / ticks, y = padT + innerH - innerH * i / ticks;
     svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: 'rgba(255,255,255,0.07)' }));
-    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 12 });
+    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 13 });
     t.textContent = fmtNum(val);
     svg.appendChild(t);
   }
   if (opts.yUnit) {
-    const yt = svgEl('text', { x: 13, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12, transform: `rotate(-90 13 ${padT + innerH / 2})` });
+    const yt = svgEl('text', { x: 13, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13, transform: `rotate(-90 13 ${padT + innerH / 2})` });
     yt.textContent = opts.yUnit;
     svg.appendChild(yt);
   }
   values.forEach((v, i) => {
     const h = innerH * v / max, x = padL + slot * i + (slot - barW) / 2, y = padT + innerH - h;
     svg.appendChild(svgEl('rect', { x, y, width: barW, height: Math.max(h, 2), rx: 3, fill: colors[i] || '#5b8ff9' }));
-    const vtx = svgEl('text', { x: x + barW / 2, y: Math.max(y - 4, padT + 8), 'text-anchor': 'middle', fill: '#c9d1d9', 'font-size': 12 });
+    const vtx = svgEl('text', { x: x + barW / 2, y: Math.max(y - 4, padT + 8), 'text-anchor': 'middle', fill: '#c9d1d9', 'font-size': 13 });
     vtx.textContent = fmtNum(v);
     svg.appendChild(vtx);
     const lines = String(labels[i]).split('\n');
     const maxW = Math.min(slot * 0.92, 90);
     lines.forEach((ln, j) => {
-      const ltx = svgEl('text', { x: x + barW / 2, y: padT + innerH + 16 + j * 15, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11 });
+      const ltx = svgEl('text', { x: x + barW / 2, y: padT + innerH + 16 + j * 15, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
       ltx.textContent = ln.length > 18 ? ln.slice(0, 17) + '…' : ln;
       svg.appendChild(ltx);
     });
@@ -73,13 +73,13 @@ function svgLineChart(id, labels, series) {
   for (let i = 0; i <= ticks; i++) {
     const val = max * i / ticks, y = padT + innerH - innerH * i / ticks;
     svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: 'rgba(255,255,255,0.07)' }));
-    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 12 });
+    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 13 });
     t.textContent = fmtNum(val);
     svg.appendChild(t);
   }
   labels.forEach((lb, i) => {
     const x = padL + innerW * i / (labels.length - 1);
-    const t = svgEl('text', { x, y: H - 12, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
+    const t = svgEl('text', { x, y: H - 12, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13 });
     t.textContent = lb;
     svg.appendChild(t);
   });
@@ -100,7 +100,7 @@ function svgLineChart(id, labels, series) {
   series.forEach((s, i) => {
     const ly = 22 + i * 18;
     svg.appendChild(svgEl('line', { x1: padL, y1: ly, x2: padL + 16, y2: ly, stroke: s.color, 'stroke-width': 2 }));
-    const t = svgEl('text', { x: padL + 22, y: ly + 4, fill: '#c9d1d9', 'font-size': 12 });
+    const t = svgEl('text', { x: padL + 22, y: ly + 4, fill: '#c9d1d9', 'font-size': 13 });
     t.textContent = s.label;
     svg.appendChild(t);
   });
@@ -141,21 +141,21 @@ function svgScatterChart(id, points, opts = {}) {
   for (let i = 0; i <= ticks; i++) {
     const v = xMin * Math.pow(xMax / xMin, i / ticks), x = xAt(v);
     svg.appendChild(svgEl('line', { x1: x, y1: padT, x2: x, y2: padT + innerH, stroke: 'rgba(255,255,255,0.07)' }));
-    const t = svgEl('text', { x, y: padT + innerH + 16, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
+    const t = svgEl('text', { x, y: padT + innerH + 16, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13 });
     t.textContent = fmtLog(v);
     svg.appendChild(t);
   }
   for (let i = 0; i <= ticks; i++) {
     const v = yMin * Math.pow(yMax / yMin, i / ticks), y = yAt(v);
     svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: padL + innerW, y2: y, stroke: 'rgba(255,255,255,0.07)' }));
-    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 12 });
+    const t = svgEl('text', { x: padL - 6, y: y + 4, 'text-anchor': 'end', fill: '#9aa5b1', 'font-size': 13 });
     t.textContent = fmtLog(v);
     svg.appendChild(t);
   }
-  const xt = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
+  const xt = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13 });
   xt.textContent = opts.xLabel || 'Energy per query (Wh, log scale)';
   svg.appendChild(xt);
-  const yt = svgEl('text', { x: 14, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12, transform: `rotate(-90 14 ${padT + innerH / 2})` });
+  const yt = svgEl('text', { x: 14, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13, transform: `rotate(-90 14 ${padT + innerH / 2})` });
   yt.textContent = opts.yLabel || 'Cost per query (USD, log scale)';
   svg.appendChild(yt);
 
@@ -185,7 +185,7 @@ function svgScatterChart(id, points, opts = {}) {
       circle.setAttribute('stroke-width', '2.5');
     }
     svg.appendChild(circle);
-    const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10, 'font-weight': '700', 'pointer-events': 'none' });
+    const t = svgEl('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 11, 'font-weight': '700', 'pointer-events': 'none' });
     t.textContent = p.label;
     svg.appendChild(t);
     if (tip && opts.tip) {
@@ -213,21 +213,21 @@ function svgScatterChart(id, points, opts = {}) {
     seen[p.color] = true;
     const group = p.group;
     svg.appendChild(svgEl('rect', { x: lx, y: ly - 9, width: 12, height: 12, rx: 2, fill: p.color }));
-    const t = svgEl('text', { x: lx + 18, y: ly, fill: '#c9d1d9', 'font-size': 12 });
+    const t = svgEl('text', { x: lx + 18, y: ly, fill: '#c9d1d9', 'font-size': 13 });
     t.textContent = group;
     svg.appendChild(t);
     ly += 20;
   });
-  const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 12 });
+  const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 13 });
   cap.textContent = 'Bubble size = water (ml)';
   svg.appendChild(cap);
   if (points.some((p) => p.reference)) {
-    const capRef = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 12 });
+    const capRef = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 13 });
     capRef.textContent = 'K = kettle reference (fixed-size bubble)';
     svg.appendChild(capRef);
   }
   if (points.some((p) => p.hollow)) {
-    const cap2 = svgEl('text', { x: lx, y: ly + (points.some((p) => p.reference) ? 40 : 24), fill: '#9aa5b1', 'font-size': 12 });
+    const cap2 = svgEl('text', { x: lx, y: ly + (points.some((p) => p.reference) ? 40 : 24), fill: '#9aa5b1', 'font-size': 13 });
     cap2.textContent = 'Dashed = no list price';
     svg.appendChild(cap2);
   }
@@ -652,7 +652,7 @@ function buildTrainingChart() {
     const v = linearMax * i / 4;
     const x = xAt(v);
     svg.appendChild(svgEl('line', { x1: x, y1: padT, x2: x, y2: padT + innerH, stroke: 'rgba(255,255,255,0.07)' }));
-    const t = svgEl('text', { x, y: padT + innerH + 14, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 11 });
+    const t = svgEl('text', { x, y: padT + innerH + 14, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
     const f = fmtCo2Tonne(v);
     t.textContent = `${f.v} ${f.u}`;
     svg.appendChild(t);
@@ -663,7 +663,7 @@ function buildTrainingChart() {
     const x = xAt(b.v);
     const w = Math.max(x - padL, 4);
     svg.appendChild(svgEl('rect', { x: padL, y, width: w, height: barH, rx: 3, fill: b.color }));
-    const lbl = svgEl('text', { x: padL - 8, y: y + barH / 2 + 3.5, 'text-anchor': 'end', fill: '#c9d1d9', 'font-size': 12 });
+    const lbl = svgEl('text', { x: padL - 8, y: y + barH / 2 + 3.5, 'text-anchor': 'end', fill: '#c9d1d9', 'font-size': 13 });
     lbl.textContent = b.label;
     svg.appendChild(lbl);
     const f = fmtCo2Tonne(b.v);
@@ -671,14 +671,14 @@ function buildTrainingChart() {
     const endAnchor = x + 8 + txt.length * 5.5 > W - padR;
     const tx = endAnchor ? x - 8 : x + 8;
     const anchor = endAnchor ? 'end' : 'start';
-    const vtx = svgEl('text', { x: tx, y: y + barH / 2 + 3.5, fill: '#fff', 'font-size': 12, 'font-weight': '700', 'text-anchor': anchor });
+    const vtx = svgEl('text', { x: tx, y: y + barH / 2 + 3.5, fill: '#fff', 'font-size': 13, 'font-weight': '700', 'text-anchor': anchor });
     vtx.textContent = txt;
     svg.appendChild(vtx);
-    const mx = svgEl('text', { x: tx, y: y + barH / 2 + 16, fill: 'rgba(255,255,255,0.75)', 'font-size': 10, 'text-anchor': anchor });
+    const mx = svgEl('text', { x: tx, y: y + barH / 2 + 16, fill: 'rgba(255,255,255,0.75)', 'font-size': 11, 'text-anchor': anchor });
     mx.textContent = `${mult(b.v / queryG)} a single query`;
     svg.appendChild(mx);
   });
-  const cap = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
+  const cap = svgEl('text', { x: padL + innerW / 2, y: H - 6, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13 });
   cap.textContent = 'g CO2e (linear scale)';
   svg.appendChild(cap);
   host.appendChild(svg);
@@ -912,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const modelSel = $('modelSelect');
   modelSel.innerHTML = DATA.models
-    .map((m) => `<option value="${m.id}">${m.name} (${m.provider})</option>`)
+    .map((m) => `<option value="${m.id}">${m.name} (${m.provider}) · ${m.tier}</option>`)
     .join('');
 
   const qtSel = $('queryType');
