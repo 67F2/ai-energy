@@ -495,7 +495,7 @@ const DATA = {
       id: 'gpt56sol',
       name: 'GPT-5.6 Sol',
       provider: 'OpenAI',
-      size: 'flagship reasoning model, ~1.05M context',
+      size: 'flagship reasoning model',
       gpuPowerW: 700,
       jPerInTok: 0.10,
       jPerOutTok: 1.6,

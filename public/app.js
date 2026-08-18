@@ -825,20 +825,20 @@ function render() {
   bindText('vMonthCo2', `${cm.v} ${cm.u}`);
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
 
-  bindText('gridLabel', `Grid intensity: ${gridG} g CO2e/kWh (${DATA.gridIntensity.label})`);
   $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}). CO2e figures recompute with this grid; water follows energy use and data-centre WUE.`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
   bindText('outLabel', `Output tokens: ${outTok.toLocaleString()}`);
   bindText('queriesLabel', `Queries / day: ${queriesPerDay.toLocaleString()}`);
-  bindText('modelMeta', `${model.size} · ${model.energyNote}`);
+  bindText('modelMeta', model.size);
+  $('modelMeta').title = model.energyNote;
 
   renderAggTable(r);
   renderEquivalents(r.energyWh.monthly, r.co2G.monthly);
 }
 
 function populateGridSelects() {
-  const opts = DATA.grids.map((g) => `<option value="${g.id}">${g.label} (~${g.gCO2ePerKWh} g/kWh)</option>`).join('');
+  const opts = DATA.grids.map((g) => `<option value="${g.id}">${g.label.replace(/\s*\(avg\)/i, '')} (~${g.gCO2ePerKWh} g/kWh)</option>`).join('');
   $('gridSelect').innerHTML = opts;
   $('gridSelectExamples').innerHTML = opts;
   $('gridSelect').value = DATA.gridIntensity.id;
