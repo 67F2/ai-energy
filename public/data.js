@@ -256,7 +256,7 @@ const SOURCES = {
   },
   deepseekPrice: { label: 'DeepSeek API pricing', ref: 'DeepSeek', url: 'https://api-docs.deepseek.com/quick_start/pricing', cat: 'vendor', note: 'List prices per 1M tokens.' },
   epaEg: { label: 'EPA eGRID: U.S. grid CO2 intensity', ref: 'EPA eGRID, 2024', url: 'https://www.epa.gov/egrid', cat: 'institution', note: 'U.S. average ~386 g CO2e/kWh.' },
-  ieaGrid: { label: 'Electricity emissions intensity', ref: 'IEA', url: 'https://www.iea.org/data-and-statistics', cat: 'institution', note: 'Australia ~500 g CO2e/kWh (IEA). The dashboard bases all CO2 calculations on this Australian grid intensity.' },
+  ieaGrid: { label: 'Electricity emissions intensity', ref: 'IEA', url: 'https://www.iea.org/data-and-statistics/data-product/emissions-factors-2024', cat: 'institution', note: 'Australia ~500 g CO2e/kWh (IEA). The dashboard bases all CO2 calculations on this Australian grid intensity.' },
   ukGrid: {
     label: 'UK grid carbon intensity',
     ref: 'Energy Dashboard / Hoare Lea, 2025',
