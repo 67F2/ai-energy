@@ -444,8 +444,8 @@ function renderCompareTab() {
   const rows = [
     `<tr><td>Google search</td>${fmtCells(0.3, 0.3 * gridG / 1000, null)}<td>~0.3 Wh per search (de Vries 2023), since disputed as an overestimate. Baseline for comparison.</td><td>${srcCell('devries')}</td></tr>`,
     `<tr><td>ChatGPT query (current era)</td>${fmtCells(0.31, 0.31 * gridG / 1000, null)}<td>~0.31 Wh per query (median, Joule 2026 peer-reviewed; IQR 0.16-0.60). The widely-cited ~2.9 Wh figure (2023) is now considered an overestimate; Altman counter-claim ~0.34 Wh.</td><td>${srcCell('jouleInference')}</td></tr>`,
-    `<tr><td>Ecosia search</td>${fmtCells(null, null, null)}<td>No per-query figure published. Ecosia produces ~200% of the renewable energy its searches use, and reports an audited organisation footprint of ~102 t CO2/yr (aggregate, not per-search).</td><td>${srcCell('ecosiaRegen')} · ${srcCell('ecosiaFactCheck')}</td></tr>`,
-    `<tr><td>Ecosia AI (chat / overviews)</td>${fmtCells(null, null, null)}<td>No per-query figure published. Optional and switchable off; uses smaller, efficient models via a European provider; Ecosia estimates AI raises its CO2 footprint ~5% (~5.1 t on the ~102 t base).</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
+    `<tr><td>Ecosia search</td>${fmtCells(null, 0.2, null)}<td>Ecosia's own operational estimate ~0.2 g CO2e/search; independent app-level tests (Greenspector, Bangor Univ.) put it ~0.055 g — ~69% lower than Google (~0.178 g). No official energy or cost figure; runs on renewables (~2x the energy its searches use).</td><td>${srcCell('ecosiaPerQuery')} · ${srcCell('ecosiaOwnCo2')} · ${srcCell('greenspector')} · ${srcCell('bangorSearch')}</td></tr>`,
+    `<tr><td>Ecosia AI (chat / overviews)</td><td colspan="3" class="nofig">No per-query figure published — Ecosia estimates AI adds ~5% to its footprint (~5.1 t on the ~102 t base); uses smaller, efficient models via a European provider; optional and switchable off.</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
     `<tr><td>AI image generation</td>${fmtCells(2.9, 2.9 * gridG / 1000, 0.04)}<td>~2.9 Wh/image (Power Hungry). Cost = GPT Image 1 medium tier.</td><td>${srcCell('powerHungry')} · ${srcCell('gptImagePrice')}</td></tr>`,
     `<tr><td>AI video clip (~5-8 s)</td>${fmtCells(90, 90 * gridG / 1000, 1.0)}<td>~90 Wh/clip (WAN2.1, 81 frames). ~30x image generation. Cost = mid-range API estimate.</td><td>${srcCell('videoEnergy')} · ${srcCell('videoPrice')}</td></tr>`,
   ].join('');
@@ -453,7 +453,7 @@ function renderCompareTab() {
 
   const footnote = $('compareFoot');
   if (footnote) {
-    footnote.innerHTML = '— in the Energy/CO2e/Cost columns = Ecosia publishes no per-query figure; only audited aggregate numbers exist (shown in the Note column, sourced above).';
+    footnote.innerHTML = '— in the Energy/Cost columns for Ecosia = no official per-query figure published. Ecosia\'s CO2e is its own operational estimate (~0.2 g/search); independent app-level tests (Greenspector, Bangor Univ.) put it at ~0.055 g/search.';
   }
 
   const ecosiaNotes = [
