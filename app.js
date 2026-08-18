@@ -1,98 +1,8 @@
 const $ = (id) => document.getElementById(id);
 
-const modelById = (id) => DATA.models.find((m) => m.id === id);
-const sourceById = (id) => SOURCES[id];
-const src = (id) => {
-  const s = sourceById(id);
-  return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : id;
-};
 
-function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
-  const jIn = promptTok * model.jPerInTok;
-  const jOut = outTok * model.jPerOutTok;
-  const joules = (jIn + jOut) * pue;
-  const wh = joules / 3600;
-  const kWh = wh / 1000;
-  const gCO2e = kWh * gridG;
-  const costUsd =
-    (promptTok / 1e6) * model.priceInUsdPer1M + (outTok / 1e6) * model.priceOutUsdPer1M;
-  const wue = DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPerKWh || 0);
-  // Primary water estimate uses source WUE only. Published prompt-level
-  // estimates use different system boundaries and remain reference figures.
-  const waterMl = kWh * wue * 1000;
-  const gpuSec = joules / model.gpuPowerW;
 
-  const scale = (f) => ({
-    perQuery: f(1),
-    daily: f(queriesPerDay),
-    monthly: f(queriesPerDay * 30),
-    yearly: f(queriesPerDay * 365),
-  });
 
-  return {
-    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut },
-    energyWh: scale((n) => wh * n),
-    co2G: scale((n) => gCO2e * n),
-    cost: scale((n) => costUsd * n),
-    waterMl: scale((n) => waterMl * n),
-    gpuSecTotal: scale((n) => gpuSec * n),
-  };
-}
-
-function fmtEnergy(wh) {
-  if (wh >= 1000) return { v: (wh / 1000).toFixed(2), u: 'kWh' };
-  if (wh >= 100) return { v: wh.toFixed(1), u: 'Wh' };
-  if (wh >= 0.1) return { v: wh.toFixed(2), u: 'Wh' };
-  return { v: (wh * 1000).toFixed(0), u: 'mWh' };
-}
-function fmtCo2(g) {
-  if (g >= 1000) return { v: (g / 1000).toFixed(2), u: 'kg' };
-  if (g >= 1) return { v: g.toFixed(1), u: 'g' };
-  return { v: (g * 1000).toFixed(0), u: 'mg' };
-}
-function fmtCost(c) {
-  if (c >= 1) return { v: '$' + c.toFixed(2), u: '' };
-  if (c >= 0.001) return { v: '$' + c.toFixed(4), u: '' };
-  return { v: (c * 100).toFixed(2), u: ' cents' };
-}
-function fmtWater(ml) {
-  if (ml >= 1000) return { v: (ml / 1000).toFixed(2), u: 'L' };
-  if (ml >= 100) return { v: ml.toFixed(0), u: 'ml' };
-  return { v: ml.toFixed(1), u: 'ml' };
-}
-function fmtGpu(s) {
-  if (s >= 3600) return { v: (s / 3600).toFixed(1), u: 'h' };
-  if (s >= 60) return { v: (s / 60).toFixed(1), u: 'min' };
-  return { v: s.toFixed(1), u: 's' };
-}
-
-function fmtEnergyFixed(wh) {
-  if (wh >= 1000) return { v: (wh / 1000).toFixed(2), u: 'kWh' };
-  if (wh >= 100) return { v: wh.toFixed(1), u: 'Wh' };
-  if (wh >= 1) return { v: wh.toFixed(2), u: 'Wh' };
-  if (wh >= 0.1) return { v: wh.toFixed(3), u: 'Wh' };
-  return { v: wh.toFixed(3), u: 'Wh' };
-}
-function fmtCo2Fixed(g) {
-  if (g >= 1000) return { v: (g / 1000).toFixed(2), u: 'kg' };
-  if (g >= 1) return { v: g.toFixed(2), u: 'g' };
-  return { v: g.toFixed(3), u: 'g' };
-}
-function fmtCo2Tonne(g) {
-  if (g >= 1e6) return { v: (g / 1e6).toFixed(1), u: 't CO2e' };
-  if (g >= 1000) return { v: (g / 1000).toFixed(1), u: 'kg CO2e' };
-  if (g >= 1) return { v: g.toFixed(2), u: 'g CO2e' };
-  return { v: g.toFixed(3), u: 'g CO2e' };
-}
-function fmtWaterFixed(ml) {
-  if (ml >= 1000) return { v: (ml / 1000).toFixed(2), u: 'L' };
-  return { v: ml.toFixed(1), u: 'ml' };
-}
-function fmtCostFixed(c) {
-  if (c >= 100) return { v: '$' + c.toFixed(0), u: '' };
-  if (c >= 1) return { v: '$' + c.toFixed(2), u: '' };
-  return { v: '$' + c.toFixed(4), u: '' };
-}
 
 function bindText(id, value) {
   const el = $(id);
@@ -107,19 +17,7 @@ function svgEl(tag, attrs) {
   return el;
 }
 
-function fmtNum(v) {
-  if (v >= 100) return Math.round(v).toLocaleString();
-  if (v >= 10) return v.toFixed(1);
-  return v.toFixed(2);
-}
 
-function niceMax(v) {
-  if (v <= 0) return 1;
-  const mag = Math.pow(10, Math.floor(Math.log10(v)));
-  const n = v / mag;
-  const f = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
-  return f * mag;
-}
 
 function svgBarChart(id, labels, values, colors, opts = {}) {
   const host = $(id);
@@ -344,7 +242,7 @@ const SCATTER_METRICS = {
 };
 
 function buildExamplesScatter(metricKey = 'usd') {
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const pue = 1.35;
   const metric = SCATTER_METRICS[metricKey] || SCATTER_METRICS.usd;
   const points = EXAMPLES.map((ex) => {
@@ -409,7 +307,7 @@ function buildExamplesScatter(metricKey = 'usd') {
 }
 
 function buildEnergyChart() {
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const labels = DATA.models.map((m) => m.name);
   const values = DATA.models.map((m) =>
     compute(m, 200, 400, 1, gridG, 1.35).perQuery.wh
@@ -424,7 +322,7 @@ function buildEnergyChart() {
 }
 
 function buildCostChart() {
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const labels = DATA.models.map((m) => m.name);
   const values = DATA.models.map((m) =>
     compute(m, 200, 400, 1, gridG, 1.35).perQuery.costUsd * 1000
@@ -448,7 +346,7 @@ function buildMacroChart() {
 
 function buildMacroWaterChart() {
   const labels = DATA.macro.globalDcElectricity.map((d) => d.year);
-  const wueTotal = DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPerKWh || 0);
+  const wueTotal = totalWue();
   const derived = DATA.macro.globalDcElectricity.map((d) => (d.tWh * wueTotal) / 1e3);
   const bench = DATA.macro.waterBenchmark2030TrillionL || 9.3;
   const benchSeries = labels.map((y) => (y === 2030 ? bench : null));
@@ -508,34 +406,12 @@ function renderAggTable(r) {
     `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>`;
 }
 
-function exampleResult(ex, gridG, pue) {
-  if (ex.fixedWh != null) {
-    const wm = DATA.waterModel;
-    const wh = ex.fixedWh;
-    const gCO2e = ex.fixedCo2G != null ? ex.fixedCo2G : wh * (gridG / 1000);
-    const baseline = ex.fixedBaselineMl != null ? ex.fixedBaselineMl : 0;
-    const wue = wm.wueLPerKWh + (wm.indirectLPerKWh || 0);
-    const waterMl = ex.fixedWaterMl != null ? ex.fixedWaterMl : baseline + (wh / 1000) * wue * 1000;
-    return {
-      perQuery: { wh, gCO2e, waterMl, costUsd: ex.fixedCostUsd != null ? ex.fixedCostUsd : null, gpuSec: 0, jIn: 0, jOut: 0 },
-    };
-  }
-  const m = modelById(ex.model);
-  return compute(m, ex.promptTok, ex.outTok, 1, gridG, pue);
-}
-
-function exampleModelName(ex) {
-  if (ex.modelLabel) return ex.modelLabel;
-  const m = modelById(ex.model);
-  return m ? m.name : '';
-}
-
 function exampleSourceLinks(ex) {
   if (!ex.sources || !ex.sources.length) return '';
   const links = ex.sources
     .map((id) => {
       const s = sourceById(id);
-      return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+      return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
     })
     .filter(Boolean)
     .join(' · ');
@@ -552,7 +428,7 @@ function exampleEqText(ex, gridG, pue) {
 }
 
 function renderCompareTab() {
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const pue = 1.35;
   const fmtCells = (wh, gCO2e, costUsd) => {
     const e = wh == null ? '—' : `${fmtEnergyFixed(wh).v} ${fmtEnergyFixed(wh).u}`;
@@ -562,7 +438,7 @@ function renderCompareTab() {
   };
   const srcCell = (id) => {
     const s = sourceById(id);
-    return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+    return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
   };
 
   const rows = [
@@ -600,7 +476,7 @@ function renderCompareTab() {
   $('compareHeadlineBody').innerHTML = refs
     .map((h) => {
       const s = sourceById(h.source);
-      return `<tr><td>${h.label}</td><td>${h.value} ${h.unit}</td><td><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a></td></tr>`;
+      return `<tr><td>${h.label}</td><td>${h.value} ${h.unit}</td><td><a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a></td></tr>`;
     })
     .join('');
 }
@@ -618,7 +494,7 @@ function renderSources() {
     const links = Object.values(SOURCES)
       .filter((s) => s.cat === c.id)
       .map(
-        (s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a> — ${s.ref}. ${s.note}</li>`
+        (s) => `<li><a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a> — ${s.ref}.${s.accessed ? ` Accessed ${s.accessed}.` : ''} ${s.note}</li>`
       )
       .join('');
     if (!links) return '';
@@ -633,9 +509,9 @@ function renderSources() {
 
 function renderMethodology() {
   const wm = DATA.waterModel;
-  const wueTotal = wm.wueLPerKWh + (wm.indirectLPerKWh || 0);
+  const wueTotal = totalWue();
   const pue = 1.35;
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
 
   const html = `
     <p class="hint" style="margin-bottom:12px;">Every figure on this page is derived from the same four formulas, each traced to its source. Interactive example in the <a href="#" data-goto="tab-calculator">Calculator tab</a>.</p>
@@ -692,7 +568,7 @@ function renderAuContext() {
   const sourceLinks = (ids) => (ids || [])
     .map((id) => {
       const s = sourceById(id);
-      return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+      return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
     })
     .filter(Boolean)
     .join(' · ');
@@ -722,7 +598,7 @@ function noteListHtml(notes) {
       const links = (typeof n === 'object' && n.sources ? n.sources : [])
         .map((id) => {
           const s = sourceById(id);
-          return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+          return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
         })
         .filter(Boolean)
         .join(' · ');
@@ -748,7 +624,7 @@ function buildTrainingChart() {
   const padL = 190, padR = 14, padT = 16, padB = 34;
   const innerW = W - padL - padR, innerH = H - padT - padB;
 
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const r = compute(DATA.models[0], 200, 400, 1, gridG, 1.35).perQuery;
   const queryG = r.gCO2e;
   const yearG = queryG * 30 * 365;
@@ -809,7 +685,7 @@ function buildTrainingChart() {
 }
 
 function renderStaticExamples() {
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const pue = 1.35;
   const wm = DATA.waterModel;
 
@@ -849,12 +725,12 @@ function renderStaticExamples() {
     <tbody>${summary}</tbody>
   </table></div>`;
 
-  const wueTotal = wm.wueLPerKWh + (wm.indirectLPerKWh || 0);
+  const wueTotal = totalWue();
 
   const refCards = (DATA.referenceCards || [])
     .map((c) => {
       const s = sourceById(c.source);
-      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
+      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
     })
     .join('');
   const wueCard = `<div class="metric"><div class="v" id="wueValue">${wueTotal} L/kWh</div><div class="u">avg data-centre WUE (direct + indirect)${wueSourceLink('cellReports')}</div></div>`;
@@ -864,7 +740,7 @@ function renderStaticExamples() {
   const trainCards = (DATA.trainingEmbodied || [])
     .map((c) => {
       const s = sourceById(c.source);
-      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
+      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
     })
     .join('');
   $('trainingCards').innerHTML = trainCards;
@@ -890,7 +766,7 @@ function renderEverydayTable(gridG) {
   };
   const srcLink = (id) => {
     const s = sourceById(id);
-    return s ? `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+    return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
   };
   const rows = [
     { thing: 'Manufacturing a new EV (incl. battery)', footprint: '~7 t CO2e', special: 'Training a GPT-3-era model (~284 t CO2e) is the carbon of about 41 new EVs.', source: 'icctEv' },
@@ -912,7 +788,7 @@ function renderEverydayTable(gridG) {
 
 function wueSourceLink(id) {
   const s = sourceById(id);
-  return s ? ` · <a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : '';
+  return s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
 }
 
 function currentInputs() {
@@ -920,7 +796,7 @@ function currentInputs() {
   const promptTok = parseInt($('promptSlider').value, 10);
   const outTok = parseInt($('outSlider').value, 10);
   const queriesPerDay = parseInt($('queriesSlider').value, 10);
-  const gridG = DATA.gridIntensity.gCO2ePerKWh;
+  const gridG = currentGrid().gCO2ePerKWh;
   const pue = parseFloat($('pueSlider').value);
   return { model, promptTok, outTok, queriesPerDay, gridG, pue };
 }

@@ -252,7 +252,7 @@ const SOURCES = {
     ref: 'Google AI',
     url: 'https://ai.google.dev/gemini-api/docs/pricing',
     cat: 'vendor',
-    note: 'List prices per 1M tokens. Gemini 3 Pro price could not be re-verified (page timed out during research); shown as an approximation.',
+    note: 'List prices per 1M tokens (official page, archived 2026-08-18). Gemini 3.1 Pro (formerly Gemini 3 Pro): $2.00 in / $12.00 out for prompts <=200k tokens; $4.00/$18.00 above 200k; batch halves the rate.',
   },
   deepseekPrice: { label: 'DeepSeek API pricing', ref: 'DeepSeek', url: 'https://api-docs.deepseek.com/quick_start/pricing', cat: 'vendor', note: 'List prices per 1M tokens.' },
   epaEg: { label: 'EPA eGRID: U.S. grid CO2 intensity', ref: 'EPA eGRID, 2024', url: 'https://www.epa.gov/egrid', cat: 'institution', note: 'U.S. average ~386 g CO2e/kWh.' },
@@ -455,6 +455,17 @@ const SOURCES = {
   },
 };
 
+// Volatile sources (prices, tree counts, exchange rates, grid intensities) get an
+// "accessed" date so the citation shows when the figure was last verified.
+const ACCESSED_DATE = '2026-08-18';
+for (const id of [
+  'openaiPrice', 'gptImagePrice', 'videoPrice', 'anthropicPrice', 'googlePrice',
+  'deepseekPrice', 'ecosiaHome', 'ecosiaCo2', 'ecosiaAi', 'ecosiaAiImproved',
+  'ecosiaAiFree', 'ecosiaRegen', 'rbaFx', 'epaEg', 'ieaGrid', 'ukGrid', 'euGrid',
+]) {
+  if (SOURCES[id]) SOURCES[id].accessed = ACCESSED_DATE;
+}
+
 const DATA = {
   kettle: {
     energyWh: 160,
@@ -524,16 +535,16 @@ const DATA = {
     },
     {
       id: 'gemini3',
-      name: 'Gemini 3 Pro',
+      name: 'Gemini 3.1 Pro',
       provider: 'Google',
       size: 'frontier reasoning model (MoE)',
       gpuPowerW: 600,
       jPerInTok: 0.08,
       jPerOutTok: 1.3,
       priceInUsdPer1M: 2.00,
-      priceOutUsdPer1M: 15.00,
+      priceOutUsdPer1M: 12.00,
       reasoning: true,
-      energyNote: 'decode-energy assumption (reasoning model; price approximate, see source note)',
+      energyNote: 'decode-energy assumption (reasoning model)',
       sources: ['wattgpu', 'tokensToWh', 'googlePrice', 'eesiWater', 'sbsNews', 'thirsty'],
     },
     {
