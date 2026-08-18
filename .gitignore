@@ -1,12 +1,6 @@
-sources/
-PLAN.md
-task.txt
-log/
-logs/
-tmp/
-.opencode/
-opencode.json
-ARCHITECTURE.md
-SOURCES_ARCHIVE.md
-verify.mjs
-gen_source_index.mjs
+# The repo root is a LOCAL-ONLY workspace: nothing here is pushed.
+# Only `public/` (the web site) and this file are tracked.
+/*
+!/public/
+!/public/**
+!/.gitignore
