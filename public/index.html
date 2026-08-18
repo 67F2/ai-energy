@@ -139,7 +139,15 @@
     .metric .v { font-size: 24px; font-weight: 700; color: var(--accent); }
     .metric .u { font-size: 15px; color: var(--muted); margin-top: 4px; }
     .subcard { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 12px; }
-    .subcard h3 { font-size: 15px; color: var(--muted); margin-bottom: 10px; }
+    .subcard h3 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
     table { width: 100%; border-collapse: collapse; font-size: 15px; }
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); font-weight: 600; white-space: nowrap; }
@@ -377,15 +385,15 @@
     </section>
 
     <section class="tab active" id="tab-calculator">
-      <p class="hint" style="margin-bottom:16px;">Pick a model and query preset — every figure below recomputes live. Worked examples, comparisons and methodology live in the other tabs.</p>
-      <div class="cols">
-        <section class="card" id="calculator">
-          <h2>Calculator</h2>
-          <div class="control">
-            <label for="modelSelect">Model</label>
-            <select id="modelSelect"></select>
-            <div class="hint" id="modelMeta"></div>
-          </div>
+      <div class="card">
+        <h2>Calculator</h2>
+        <p class="hint" style="margin-bottom:16px;">Pick a model and query preset — every figure below recomputes live. Worked examples, comparisons and methodology live in the other tabs.</p>
+        <div class="cols">
+          <section id="calculator">
+            <div class="control">
+              <label for="modelSelect">Model</label>
+              <select id="modelSelect"></select>
+            </div>
           <div class="control">
             <label for="queryType">Query type (preset)</label>
             <select id="queryType"></select>
@@ -423,8 +431,8 @@
             <div class="metric"><div class="v" id="vGpu">–</div><div class="u">GPU time / query</div></div>
           </div>
 
-          <div class="card">
-            <h2>Monthly footprint (30-day, your usage)</h2>
+          <div class="subcard">
+            <h3>Monthly footprint (30-day, your usage)</h3>
             <div class="cards" style="grid-template-columns: repeat(3,1fr);">
               <div class="metric"><div class="v" id="vMonthEnergy">–</div><div class="u">Energy / month</div></div>
               <div class="metric"><div class="v" id="vMonthCo2">–</div><div class="u">CO2e / month</div></div>
@@ -441,15 +449,16 @@
           </div>
         </section>
       </div>
+      </div>
 
       <div class="grid2">
         <div class="card">
-          <h2>Energy per query by model</h2>
+          <h2>Energy per query by model (Wh)</h2>
           <div class="chart-box"><div id="energyChart"></div></div>
           <p class="hint">Bar values use the standard 200-in / 400-out token query. Reference bars from IEA (via SBS) and de Vries.</p>
         </div>
         <div class="card">
-          <h2>Cost per 1,000 queries by model</h2>
+          <h2>Cost per 1,000 queries by model (USD)</h2>
           <div class="chart-box"><div id="costChart"></div></div>
           <p class="hint">API list prices per 1M tokens; bars show cost per 1,000 queries.</p>
         </div>

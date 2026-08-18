@@ -825,13 +825,12 @@ function render() {
   bindText('vMonthCo2', `${cm.v} ${cm.u}`);
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
 
-  $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}). CO2e figures recompute with this grid; water follows energy use and data-centre WUE.`;
+  $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}).`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
   bindText('outLabel', `Output tokens: ${outTok.toLocaleString()}`);
   bindText('queriesLabel', `Queries / day: ${queriesPerDay.toLocaleString()}`);
-  bindText('modelMeta', model.size);
-  $('modelMeta').title = model.energyNote;
+  $('modelSelect').title = model.energyNote;
 
   renderAggTable(r);
   renderEquivalents(r.energyWh.monthly, r.co2G.monthly);
