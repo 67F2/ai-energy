@@ -49,10 +49,10 @@ function svgBarChart(id, labels, values, colors, opts = {}) {
     vtx.textContent = fmtNum(v);
     svg.appendChild(vtx);
     const lines = String(labels[i]).split('\n');
-    const maxW = Math.min(slot * 0.92, 90);
+    const maxChars = Math.max(4, Math.floor((slot * 0.92) / 6));
     lines.forEach((ln, j) => {
       const ltx = svgEl('text', { x: x + barW / 2, y: padT + innerH + 16 + j * 15, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 12 });
-      ltx.textContent = ln.length > 18 ? ln.slice(0, 17) + '…' : ln;
+      ltx.textContent = ln.length > maxChars ? ln.slice(0, maxChars - 1) + '…' : ln;
       svg.appendChild(ltx);
     });
   });
@@ -445,7 +445,7 @@ function renderCompareTab() {
     `<tr><td>Google search</td>${fmtCells(0.3, 0.3 * gridG / 1000, null)}<td>~0.3 Wh per search (de Vries 2023), since disputed as an overestimate. Baseline for comparison.</td><td>${srcCell('devries')}</td></tr>`,
     `<tr><td>ChatGPT query (current era)</td>${fmtCells(0.31, 0.31 * gridG / 1000, null)}<td>~0.31 Wh per query (median, Joule 2026 peer-reviewed; IQR 0.16-0.60). The widely-cited ~2.9 Wh figure (2023) is now considered an overestimate; Altman counter-claim ~0.34 Wh.</td><td>${srcCell('jouleInference')}</td></tr>`,
     `<tr><td>Ecosia search</td>${fmtCells(null, 0.2, null)}<td>Ecosia's own operational estimate ~0.2 g CO2e/search; independent app-level tests (Greenspector, Bangor Univ.) put it ~0.055 g — ~69% lower than Google (~0.178 g). No official energy or cost figure; runs on renewables (~2x the energy its searches use).</td><td>${srcCell('ecosiaPerQuery')} · ${srcCell('ecosiaOwnCo2')} · ${srcCell('greenspector')} · ${srcCell('bangorSearch')}</td></tr>`,
-    `<tr><td>Ecosia AI (chat / overviews)</td><td colspan="3" class="nofig">No per-query figure published — Ecosia estimates AI adds ~5% to its footprint (~5.1 t on the ~102 t base); uses smaller, efficient models via a European provider; optional and switchable off.</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
+    `<tr><td>Ecosia AI (chat / overviews)</td><td colspan="4" class="nofig">No per-query figure published — Ecosia estimates AI adds ~5% to its footprint (~5.1 t on the ~102 t base); uses smaller, efficient models via a European provider; optional and switchable off.</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
     `<tr><td>AI image generation</td>${fmtCells(2.9, 2.9 * gridG / 1000, 0.04)}<td>~2.9 Wh/image (Power Hungry). Cost = GPT Image 1 medium tier.</td><td>${srcCell('powerHungry')} · ${srcCell('gptImagePrice')}</td></tr>`,
     `<tr><td>AI video clip (~5-8 s)</td>${fmtCells(90, 90 * gridG / 1000, 1.0)}<td>~90 Wh/clip (WAN2.1, 81 frames). ~30x image generation. Cost = mid-range API estimate.</td><td>${srcCell('videoEnergy')} · ${srcCell('videoPrice')}</td></tr>`,
   ].join('');
@@ -537,7 +537,7 @@ function renderMethodology() {
         <p class="hint">Public API list prices per 1M tokens (${src('openaiPrice')}, ${src('anthropicPrice')}).</p>
       </div>
     </div>
-    <p class="hint" style="margin-top:12px;">Fixed examples (images, low-resource translation, audio transcription) replace the token formula with published per-inference measurements — each card links its source. All figures are order-of-magnitude estimates: providers do not publish per-query telemetry.</p>
+    <p class="hint" style="margin-top:12px;">Fixed examples (AI images, video clips, audio transcription) use published per-inference measurements instead of the token formula — each row links its source. All figures are order-of-magnitude estimates: providers do not publish per-query telemetry.</p>
   `;
   $('methodology').innerHTML = html;
 }
@@ -720,10 +720,13 @@ function renderStaticExamples() {
       return `<tr class="group-row"><td colspan="9"><strong>${g}</strong></td></tr>${rows}`;
     })
     .join('');
-  $('staticExamples').innerHTML = `<div style="overflow-x:auto;"><table>
-    <thead><tr><th>#</th><th>Example</th><th>Model</th><th>Energy</th><th>CO2e</th><th>Water</th><th>Cost</th><th>≈ Everyday equivalent</th><th>Note &amp; sources</th></tr></thead>
-    <tbody>${summary}</tbody>
-  </table></div>`;
+  $('staticExamples').innerHTML = `<div class="subcard">
+    <h3>All examples, one table</h3>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr><th>#</th><th>Example</th><th>Model</th><th>Energy (Wh)</th><th>CO2e (g)</th><th>Water (ml)</th><th>Cost (USD)</th><th>≈ Everyday equivalent</th><th>Note &amp; sources</th></tr></thead>
+      <tbody>${summary}</tbody>
+    </table></div>
+  </div>`;
 
   const wueTotal = totalWue();
 
