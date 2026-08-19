@@ -121,6 +121,7 @@
       font-size: 15px;
     }
     input[type="range"] { accent-color: var(--accent); }
+    select:disabled, input[type="range"]:disabled { opacity: 0.5; cursor: not-allowed; }
     .hint { font-size: 15px; color: var(--muted); margin-top: 4px; }
     .cards {
       display: grid;
@@ -406,6 +407,7 @@
           <div class="control">
             <label for="queryType">Query type (preset)</label>
             <select id="queryType"></select>
+            <p class="hint" id="queryTypeHint" style="display:none;"></p>
           </div>
           <div class="control">
             <label for="promptSlider" id="promptLabel">Prompt tokens</label>

@@ -393,12 +393,13 @@ function renderAggTable(r) {
   const body = rows
     .map(([label, key, fmt, fmtFixed]) => {
       const src = key === 'kWh' ? r.energyWh : key === 'g' ? r.co2G : key === '$' ? r.cost : key === 'ml' ? r.waterMl : r.gpuSecTotal;
+      const cell = (v, f) => (v == null ? '—' : `${f(v).v} ${f(v).u}`);
       return `<tr>
         <td>${label}</td>
-        <td>${fmtFixed(src.perQuery).v} ${fmtFixed(src.perQuery).u}</td>
-        <td>${fmt(src.daily).v} ${fmt(src.daily).u}</td>
-        <td>${fmt(src.monthly).v} ${fmt(src.monthly).u}</td>
-        <td>${fmt(src.yearly).v} ${fmt(src.yearly).u}</td>
+        <td>${cell(src.perQuery, fmtFixed)}</td>
+        <td>${cell(src.daily, fmt)}</td>
+        <td>${cell(src.monthly, fmt)}</td>
+        <td>${cell(src.yearly, fmt)}</td>
       </tr>`;
     })
     .join('');
@@ -806,36 +807,37 @@ function currentInputs() {
 
 function render() {
   const { model, promptTok, outTok, queriesPerDay, gridG, pue } = currentInputs();
-  const r = compute(model, promptTok, outTok, queriesPerDay, gridG, pue);
+  const qt = DATA.queryTypes.find((q) => q.id === $('queryType').value);
+  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue);
   const pq = r.perQuery;
 
   const e = fmtEnergyFixed(pq.wh);
   const c = fmtCo2Fixed(pq.gCO2e);
   const cost = fmtCostFixed(pq.costUsd);
   const w = fmtWaterFixed(pq.waterMl);
-  const g = fmtGpu(pq.gpuSec);
+  const g = pq.gpuSec == null ? null : fmtGpu(pq.gpuSec);
 
   bindText('vEnergy', `${e.v} ${e.u}`);
   bindText('vCo2', `${c.v} ${c.u}`);
   bindText('vCost', `${cost.v}${cost.u}`);
   bindText('vWater', `${w.v} ${w.u}`);
-  bindText('vGpu', `${g.v} ${g.u}`);
+  bindText('vGpu', g ? `${g.v} ${g.u}` : '—');
 
   const em = fmtEnergy(r.energyWh.monthly);
   const cm = fmtCo2(r.co2G.monthly);
   const wm = fmtWater(r.waterMl.monthly);
   const cst = fmtCostFixed(r.cost.monthly);
-  const gm = fmtGpu(r.gpuSecTotal.monthly);
+  const gm = r.gpuSecTotal.monthly == null ? null : fmtGpu(r.gpuSecTotal.monthly);
   bindText('vMonthEnergy', `${em.v} ${em.u}`);
   bindText('vMonthCo2', `${cm.v} ${cm.u}`);
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
   bindText('vMonthCost', `${cst.v}${cst.u}`);
-  bindText('vMonthGpu', `${gm.v} ${gm.u}`);
+  bindText('vMonthGpu', gm ? `${gm.v} ${gm.u}` : '—');
 
   $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}).`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
-  bindText('promptLabel', `Prompt tokens: ${promptTok.toLocaleString()}`);
-  bindText('outLabel', `Output tokens: ${outTok.toLocaleString()}`);
+  bindText('promptLabel', qt.fixedWh != null ? 'Prompt tokens: —' : `Prompt tokens: ${promptTok.toLocaleString()}`);
+  bindText('outLabel', qt.fixedWh != null ? 'Output tokens: —' : `Output tokens: ${outTok.toLocaleString()}`);
   bindText('queriesLabel', `Queries / day: ${queriesPerDay.toLocaleString()}`);
   $('modelSelect').title = model.energyNote;
 
@@ -869,8 +871,27 @@ function onGridChange(event) {
 function onQueryTypeChange() {
   const qt = DATA.queryTypes.find((q) => q.id === $('queryType').value);
   if (qt) {
-    $('promptSlider').value = qt.promptTok;
-    $('outSlider').value = qt.outTok;
+    if (qt.fixedWh == null) {
+      $('promptSlider').value = qt.promptTok;
+      $('outSlider').value = qt.outTok;
+    }
+    syncFixedTypeUI(qt);
+  }
+}
+
+function syncFixedTypeUI(qt) {
+  const fixed = qt != null && qt.fixedWh != null;
+  ['modelSelect', 'promptSlider', 'outSlider'].forEach((id) => {
+    $(id).disabled = fixed;
+  });
+  const hint = $('queryTypeHint');
+  if (hint) {
+    if (fixed) {
+      hint.innerHTML = `Fixed per-inference preset (published measurement) — Model and token sliders don't apply. Source: ${qt.sources.map(src).join(', ')}.`;
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+    }
   }
 }
 
@@ -928,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
   qtSel.innerHTML = DATA.queryTypes
     .map((q) => `<option value="${q.id}">${q.label}</option>`)
     .join('');
+  syncFixedTypeUI(DATA.queryTypes.find((q) => q.id === qtSel.value));
 
   populateGridSelects();
   bindTabs();

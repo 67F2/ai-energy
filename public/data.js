@@ -601,6 +601,9 @@ const DATA = {
     { id: 'detailed', label: 'Detailed / write code', promptTok: 500, outTok: 1000 },
     { id: 'long', label: 'Long context (RAG / document)', promptTok: 8000, outTok: 800 },
     { id: 'vision', label: 'Image / vision input', promptTok: 1500, outTok: 150 },
+    { id: 'transcribe', label: '1-hour meeting transcription', fixedWh: 16, fixedCostUsd: 0.36, sources: ['asrCompare', 'openaiPrice', 'cellReports'] },
+    { id: 'imagegen', label: 'AI image generation', fixedWh: 2.9, fixedCostUsd: 0.04, sources: ['powerHungry', 'gptImagePrice'] },
+    { id: 'videoclip', label: 'Short AI video clip (~5-8 s)', fixedWh: 90, fixedCostUsd: 1.0, sources: ['videoEnergy', 'videoPrice'] },
   ],
 
   referenceCards: [

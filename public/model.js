@@ -49,6 +49,36 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   };
 }
 
+// Query-type computation. Token presets use compute(); fixed per-inference
+// presets (transcription, image gen, video) use published measurements the
+// same way exampleResult() does.
+function computeQueryType(model, qt, queriesPerDay, gridG, pue) {
+  if (qt.fixedWh != null) {
+    const wm = DATA.waterModel;
+    const wh = qt.fixedWh;
+    const gCO2e = qt.fixedCo2G != null ? qt.fixedCo2G : wh * (gridG / 1000);
+    const baseline = qt.fixedBaselineMl != null ? qt.fixedBaselineMl : 0;
+    const wue = totalWue();
+    const waterMl = qt.fixedWaterMl != null ? qt.fixedWaterMl : baseline + (wh / 1000) * wue * 1000;
+    const costUsd = qt.fixedCostUsd != null ? qt.fixedCostUsd : null;
+    const scale = (f) => ({
+      perQuery: f(1),
+      daily: f(queriesPerDay),
+      monthly: f(queriesPerDay * 30),
+      yearly: f(queriesPerDay * 365),
+    });
+    return {
+      perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec: null, jIn: 0, jOut: 0 },
+      energyWh: scale((n) => wh * n),
+      co2G: scale((n) => gCO2e * n),
+      cost: scale((n) => costUsd * n),
+      waterMl: scale((n) => waterMl * n),
+      gpuSecTotal: scale(() => null),
+    };
+  }
+  return compute(model, qt.promptTok, qt.outTok, queriesPerDay, gridG, pue);
+}
+
 function exampleResult(ex, gridG, pue) {
   if (ex.fixedWh != null) {
     const wm = DATA.waterModel;
