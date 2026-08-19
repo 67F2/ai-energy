@@ -824,9 +824,13 @@ function render() {
   const em = fmtEnergy(r.energyWh.monthly);
   const cm = fmtCo2(r.co2G.monthly);
   const wm = fmtWater(r.waterMl.monthly);
+  const cst = fmtCostFixed(r.cost.monthly);
+  const gm = fmtGpu(r.gpuSecTotal.monthly);
   bindText('vMonthEnergy', `${em.v} ${em.u}`);
   bindText('vMonthCo2', `${cm.v} ${cm.u}`);
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
+  bindText('vMonthCost', `${cst.v}${cst.u}`);
+  bindText('vMonthGpu', `${gm.v} ${gm.u}`);
 
   $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}).`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
@@ -914,7 +918,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const modelSel = $('modelSelect');
   modelSel.innerHTML = DATA.models
-    .map((m) => `<option value="${m.id}">${m.name} (${m.provider}) · ${m.tier}</option>`)
+    .map((m) => {
+      const prov = m.name.toLowerCase().includes(m.provider.toLowerCase()) ? '' : ` (${m.provider})`;
+      return `<option value="${m.id}">${m.name}${prov} · ${m.tier}</option>`;
+    })
     .join('');
 
   const qtSel = $('queryType');

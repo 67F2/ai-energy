@@ -446,19 +446,20 @@
 
           <div class="subcard">
             <h3>Monthly footprint</h3>
-            <div class="cards" style="grid-template-columns: repeat(3,1fr);">
+            <div class="cards">
               <div class="metric"><div class="v" id="vMonthEnergy">–</div><div class="u">Energy</div></div>
               <div class="metric"><div class="v" id="vMonthCo2">–</div><div class="u">CO2e</div></div>
+              <div class="metric"><div class="v" id="vMonthCost">–</div><div class="u">Cost (USD)</div></div>
               <div class="metric"><div class="v" id="vMonthWater">–</div><div class="u">Water</div></div>
+              <div class="metric"><div class="v" id="vMonthGpu">–</div><div class="u">GPU time</div></div>
             </div>
-            <div class="subcard">
-              <h3>Everyday equivalents</h3>
-              <div class="eq-grid" id="equivalents"></div>
-            </div>
-            <div class="subcard">
-              <h3>Full breakdown</h3>
-              <div style="overflow-x:auto;"><table id="aggTable"></table></div>
-            </div>
+            <h3>In common terms</h3>
+            <div class="eq-grid" id="equivalents"></div>
+          </div>
+
+          <div class="subcard">
+            <h3>Full breakdown</h3>
+            <div style="overflow-x:auto;"><table id="aggTable"></table></div>
           </div>
         </section>
       </div>
