@@ -286,6 +286,28 @@
       word-break: break-word;
     }
     .method .hint { font-size: 15px; margin-top: 6px; }
+    .estimate-intro { max-width: 760px; margin-bottom: 20px; }
+    .estimate-intro h2 { font-size: clamp(24px, 4vw, 36px); margin-bottom: 8px; letter-spacing: -0.025em; }
+    .estimate-intro p { color: var(--muted); font-size: 17px; }
+    .simple-controls { display: grid; grid-template-columns: 2fr 1fr 1.3fr; gap: 12px; align-items: end; }
+    .simple-controls .control { margin: 0; }
+    .simple-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+    .simple-metric { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .simple-metric .label { color: var(--muted); font-size: 15px; }
+    .simple-metric .value { color: var(--accent); font-size: 28px; font-weight: 750; margin: 3px 0; }
+    .simple-metric .range { color: var(--muted); font-size: 14px; }
+    .estimate-summary { border-left: 3px solid var(--accent); padding-left: 14px; margin-top: 20px; }
+    .estimate-summary strong { color: var(--text); }
+    .evidence-line { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+    .evidence-peer { color: #b7e4c7; border-color: #52796f; }
+    .evidence-preprint { color: #f6bd60; border-color: #8a6d2f; }
+    details.assumptions { margin-top: 14px; }
+    details.assumptions summary { cursor: pointer; color: var(--accent); }
+    details.assumptions p { color: var(--muted); font-size: 15px; margin-top: 8px; }
+    .advanced-link { display: inline-block; margin-top: 18px; padding: 9px 14px; border: 1px solid var(--accent); border-radius: 8px; }
+    @media (max-width: 760px) {
+      .simple-controls, .simple-results { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -298,17 +320,73 @@
     </header>
 
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="tab-calculator">Calculator</button>
+      <button class="tab-btn active" data-tab="tab-estimator">Estimate</button>
       <button class="tab-btn" data-tab="tab-examples">Examples &amp; Comparisons</button>
       <button class="tab-btn" data-tab="tab-compare">Web Search vs AI</button>
-      <button class="tab-btn" data-tab="tab-outlook">Future dynamics</button>
-      <button class="tab-btn" data-tab="tab-sources">Sources &amp; Method</button>
+      <button class="tab-btn" data-tab="tab-advanced">Advanced</button>
+      <button class="tab-btn" data-tab="tab-outlook">Big picture</button>
+      <button class="tab-btn" data-tab="tab-sources">Evidence</button>
     </nav>
+
+    <section class="tab active" id="tab-estimator">
+      <div class="estimate-intro">
+        <h2>A useful estimate in three choices</h2>
+        <p>Choose the activity, how often you use it and the electricity grid. Results are research-based ranges—not a meter reading from an AI provider.</p>
+      </div>
+      <div class="card">
+        <div class="simple-controls">
+          <div class="control">
+            <label for="mainProfileSelect">What did you do?</label>
+            <select id="mainProfileSelect"></select>
+          </div>
+          <div class="control">
+            <label for="mainFrequencySelect">How often?</label>
+            <select id="mainFrequencySelect">
+              <option value="0.0333333333">Once a month</option>
+              <option value="0.4285714286">A few times a week</option>
+              <option value="1" selected>Once a day</option>
+              <option value="10">10 times a day</option>
+              <option value="30">30 times a day</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="mainGridSelect">Where?</label>
+            <select id="mainGridSelect"></select>
+          </div>
+        </div>
+
+        <div class="simple-results" aria-live="polite">
+          <div class="simple-metric">
+            <div class="label">Energy per use</div>
+            <div class="value" id="mainEnergy">—</div>
+            <div class="range" id="mainEnergyRange">—</div>
+          </div>
+          <div class="simple-metric">
+            <div class="label">CO2e per use</div>
+            <div class="value" id="mainCo2">—</div>
+            <div class="range" id="mainCo2Range">—</div>
+          </div>
+          <div class="simple-metric">
+            <div class="label">Water per use</div>
+            <div class="value" id="mainWater">—</div>
+            <div class="range" id="mainWaterRange">—</div>
+          </div>
+        </div>
+
+        <div class="estimate-summary" id="mainMonthlySummary"></div>
+        <div class="evidence-line" id="mainEvidence"></div>
+        <details class="assumptions">
+          <summary>Why is this a range?</summary>
+          <p id="mainAssumptions"></p>
+        </details>
+        <a href="#" class="advanced-link" data-goto="tab-advanced">Adjust technical assumptions</a>
+      </div>
+    </section>
 
     <section class="tab" id="tab-examples">
       <div class="card">
         <h2>Common AI queries and what they really cost</h2>
-        <p class="hint" style="margin-bottom:16px;">Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-calculator">Calculator tab</a> lets you change every parameter, including the grid.</p>
+        <p class="hint" style="margin-bottom:16px;">Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-advanced">advanced calculator</a> exposes the technical parameters.</p>
         <div class="scatter-controls">
           <label>Bubble axis: <select id="scatterMetric">
             <option value="usd">Cost (USD)</option>
@@ -392,10 +470,10 @@
       </div>
     </section>
 
-    <section class="tab active" id="tab-calculator">
+    <section class="tab" id="tab-advanced">
       <div class="card">
-        <h2>Calculator</h2>
-        <p class="hint" style="margin-bottom:16px;">Pick a model and query preset — every figure below recomputes live.</p>
+        <h2>Advanced calculator</h2>
+        <p class="hint" style="margin-bottom:16px;">Explore a transparent scenario model. These provider-labelled coefficients are assumptions informed by open-model benchmarks, not measurements from proprietary services.</p>
         <div class="cols">
           <section id="calculator">
             <div class="subcard">

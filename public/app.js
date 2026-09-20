@@ -515,7 +515,7 @@ function renderMethodology() {
   const gridG = currentGrid().gCO2ePerKWh;
 
   const html = `
-    <p class="hint" style="margin-bottom:12px;">Every figure on this page is derived from the same four formulas, each traced to its source. Interactive example in the <a href="#" data-goto="tab-calculator">Calculator tab</a>.</p>
+    <p class="hint" style="margin-bottom:12px;">Every figure on this page is derived from the same four formulas, each traced to its source. Technical controls are in the <a href="#" data-goto="tab-advanced">advanced calculator</a>.</p>
     <div class="method-grid">
       <div class="method">
         <h3>⚡ Energy</h3>
@@ -793,6 +793,49 @@ function wueSourceLink(id) {
   return s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
 }
 
+function formattedMetric(formatter, value) {
+  const f = formatter(value);
+  return `${f.v} ${f.u}`.trim();
+}
+
+function simpleNumber(value) {
+  if (value > 0 && value < 0.1) return '<0.1';
+  if (value < 10) return value.toFixed(1).replace(/\.0$/, '');
+  return Math.round(value).toLocaleString();
+}
+
+function renderMainEstimate() {
+  const profile = profileById($('mainProfileSelect').value) || DATA.taskProfiles[0];
+  const usesPerDay = parseFloat($('mainFrequencySelect').value);
+  const grid = currentGrid();
+  const r = estimateProfile(profile, usesPerDay, grid.gCO2ePerKWh);
+  const typical = r.perUse.typical;
+
+  bindText('mainEnergy', formattedMetric(fmtEnergyFixed, typical.energyWh));
+  bindText('mainCo2', formattedMetric(fmtCo2Fixed, typical.co2G));
+  bindText('mainWater', formattedMetric(fmtWaterFixed, typical.waterMl));
+  bindText('mainEnergyRange', `Research range: ${formattedMetric(fmtEnergyFixed, r.perUse.low.energyWh)}–${formattedMetric(fmtEnergyFixed, r.perUse.high.energyWh)}`);
+  bindText('mainCo2Range', `Range on this grid: ${formattedMetric(fmtCo2Fixed, r.perUse.low.co2G)}–${formattedMetric(fmtCo2Fixed, r.perUse.high.co2G)}`);
+  bindText('mainWaterRange', `Scenario range: ${formattedMetric(fmtWaterFixed, r.perUse.low.waterMl)}–${formattedMetric(fmtWaterFixed, r.perUse.high.waterMl)}`);
+
+  const month = r.monthly.typical;
+  const phoneCharges = month.energyWh / DATA.equivalents.smartphoneChargeWh;
+  const drivingKm = month.co2G / DATA.equivalents.carGPerKm;
+  const bottles = month.waterMl / DATA.equivalents.waterBottleMl;
+  $('mainMonthlySummary').innerHTML = `At the selected frequency, a typical month is <strong>${formattedMetric(fmtEnergy, month.energyWh)}</strong>, <strong>${formattedMetric(fmtCo2, month.co2G)} CO2e</strong> and <strong>${formattedMetric(fmtWater, month.waterMl)} of water</strong>. That energy is about ${simpleNumber(phoneCharges)} phone charges; the carbon is about ${simpleNumber(drivingKm)} km of petrol driving; the water is about ${simpleNumber(bottles)} × 500 ml bottles.`;
+
+  const source = sourceById(profile.source);
+  const evidenceClass = profile.evidence === 'peer' ? 'evidence-peer' : 'evidence-preprint';
+  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">${source ? `<a href="${srcHref(source)}" target="_blank" rel="noopener">${source.label}</a>` : ''}</span><span class="hint">Grid: ${grid.label}, ~${grid.gCO2ePerKWh} g CO2e/kWh</span>`;
+  bindText('mainAssumptions', `${profile.description} ${profile.boundary} ${profile.note} Carbon changes with the selected electricity grid. Water uses the dashboard’s ${totalWue()} L/kWh combined direct-and-indirect scenario. Actual providers generally do not publish per-request telemetry.`);
+}
+
+function populateMainEstimator() {
+  $('mainProfileSelect').innerHTML = DATA.taskProfiles
+    .map((p) => `<option value="${p.id}">${p.label}</option>`)
+    .join('');
+}
+
 function currentInputs() {
   const model = modelById($('modelSelect').value);
   const promptTok = parseInt($('promptSlider').value, 10);
@@ -847,8 +890,10 @@ function populateGridSelects() {
   const opts = DATA.grids.map((g) => `<option value="${g.id}">${g.label.replace(/\s*\(avg\)/i, '')} (~${g.gCO2ePerKWh} g/kWh)</option>`).join('');
   $('gridSelect').innerHTML = opts;
   $('gridSelectExamples').innerHTML = opts;
+  $('mainGridSelect').innerHTML = opts;
   $('gridSelect').value = DATA.gridIntensity.id;
   $('gridSelectExamples').value = DATA.gridIntensity.id;
+  $('mainGridSelect').value = DATA.gridIntensity.id;
 }
 
 function onGridChange(event) {
@@ -857,6 +902,8 @@ function onGridChange(event) {
   DATA.gridIntensity = g;
   $('gridSelect').value = g.id;
   $('gridSelectExamples').value = g.id;
+  $('mainGridSelect').value = g.id;
+  renderMainEstimate();
   render();
   buildEnergyChart();
   buildCostChart();
@@ -907,6 +954,9 @@ function bindControls() {
   });
   $('gridSelect').addEventListener('change', onGridChange);
   $('gridSelectExamples').addEventListener('change', onGridChange);
+  $('mainGridSelect').addEventListener('change', onGridChange);
+  $('mainProfileSelect').addEventListener('change', renderMainEstimate);
+  $('mainFrequencySelect').addEventListener('change', renderMainEstimate);
   $('scatterMetric').addEventListener('change', () => {
     buildExamplesScatter($('scatterMetric').value);
   });
@@ -950,9 +1000,11 @@ document.addEventListener('DOMContentLoaded', () => {
   $('pueSlider').value = DATA.defaultPue;
   syncFixedTypeUI(DATA.queryTypes.find((q) => q.id === qtSel.value));
 
+  populateMainEstimator();
   populateGridSelects();
   bindTabs();
   bindControls();
+  renderMainEstimate();
   render();
   buildEnergyChart();
   buildCostChart();
