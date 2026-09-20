@@ -479,7 +479,7 @@
             <div class="subcard">
               <h3>Parameters</h3>
               <div class="control">
-                <label for="modelSelect">Model</label>
+                <label for="modelSelect">Provider scenario</label>
                 <select id="modelSelect"></select>
               </div>
           <div class="control">
@@ -492,8 +492,20 @@
             <input type="range" id="promptSlider" min="10" max="32000" step="10" value="200" />
           </div>
           <div class="control">
-            <label for="outSlider" id="outLabel">Output tokens</label>
+            <label for="outSlider" id="outLabel">Generated tokens (including reasoning)</label>
             <input type="range" id="outSlider" min="10" max="8000" step="10" value="400" />
+          </div>
+          <div class="control">
+            <label for="servingSelect">Serving efficiency</label>
+            <select id="servingSelect">
+              <option value="0.7">Efficient deployment (0.7×)</option>
+              <option value="1" selected>Typical scenario (1.0×)</option>
+              <option value="1.5">Conservative scenario (1.5×)</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="cacheSlider" id="cacheLabel">Reusable prompt cache: 0%</label>
+            <input type="range" id="cacheSlider" min="0" max="100" step="5" value="0" />
           </div>
           <div class="control">
             <label for="queriesSlider" id="queriesLabel">Queries / day</label>
@@ -508,7 +520,11 @@
             <label for="pueSlider" id="pueLabel">PUE</label>
             <input type="range" id="pueSlider" min="1.00" max="2.00" step="0.01" value="1.35" />
           </div>
-          <p class="hint">PUE (Power Usage Effectiveness) ~1.1–1.6 for modern facilities. It applies data-centre overhead to token-based estimates. Fixed media presets already use published whole-inference measurements, so their PUE control is disabled. Water is derived from energy via total WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI + 3.4 L/kWh indirect power-plant water, Patterns 2026).</p>
+          <div class="control">
+            <label for="wueSlider" id="wueLabel">Combined water intensity: 5.3 L/kWh</label>
+            <input type="range" id="wueSlider" min="0" max="10" step="0.1" value="5.3" />
+          </div>
+          <p class="hint">These controls explore scenarios, not hidden provider telemetry. Serving efficiency represents the combined effect of hardware, precision, batching and software. Prompt caching reduces repeated prefill work in this simplified model; public API billing may treat cached tokens differently. PUE applies facility overhead only to token-based estimates. Water intensity combines direct cooling and electricity-related water.</p>
             </div>
         </section>
 

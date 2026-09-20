@@ -58,17 +58,20 @@ function estimateProfile(profile, usesPerDay, gridG) {
   };
 }
 
-function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
-  const jIn = promptTok * model.jPerInTok;
+function compute(model, promptTok, outTok, queriesPerDay, gridG, pue, options = {}) {
+  const cacheHitRate = Math.min(1, Math.max(0, options.cacheHitRate || 0));
+  const servingFactor = options.servingFactor || 1;
+  const effectivePromptTok = promptTok * (1 - cacheHitRate);
+  const jIn = effectivePromptTok * model.jPerInTok;
   const jOut = outTok * model.jPerOutTok;
-  const itJoules = jIn + jOut;
+  const itJoules = (jIn + jOut) * servingFactor;
   const facilityJoules = itJoules * pue;
   const wh = facilityJoules / 3600;
   const kWh = wh / 1000;
   const gCO2e = kWh * gridG;
   const costUsd =
     (promptTok / 1e6) * model.priceInUsdPer1M + (outTok / 1e6) * model.priceOutUsdPer1M;
-  const wue = totalWue();
+  const wue = options.wueLPerKWh == null ? totalWue() : options.wueLPerKWh;
   // Primary water estimate uses source WUE only. Published prompt-level
   // estimates use different system boundaries and remain reference figures.
   const waterMl = kWh * wue * 1000;
@@ -84,7 +87,7 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   });
 
   return {
-    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut, itJoules, facilityJoules },
+    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut, itJoules, facilityJoules, effectivePromptTok, cacheHitRate, servingFactor, wue },
     energyWh: scale((n) => wh * n),
     co2G: scale((n) => gCO2e * n),
     cost: scale((n) => costUsd * n),
@@ -96,12 +99,12 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
 // Query-type computation. Token presets use compute(); fixed per-inference
 // presets (transcription, image gen, video) use published measurements the
 // same way exampleResult() does.
-function computeQueryType(model, qt, queriesPerDay, gridG, pue) {
+function computeQueryType(model, qt, queriesPerDay, gridG, pue, options = {}) {
   if (qt.fixedWh != null) {
     const wh = qt.fixedWh;
     const gCO2e = qt.fixedCo2G != null ? qt.fixedCo2G : wh * (gridG / 1000);
     const baseline = qt.fixedBaselineMl != null ? qt.fixedBaselineMl : 0;
-    const wue = totalWue();
+    const wue = options.wueLPerKWh == null ? totalWue() : options.wueLPerKWh;
     const waterMl = qt.fixedWaterMl != null ? qt.fixedWaterMl : baseline + (wh / 1000) * wue * 1000;
     const costUsd = qt.fixedCostUsd != null ? qt.fixedCostUsd : null;
     const scale = (f) => ({
@@ -119,7 +122,7 @@ function computeQueryType(model, qt, queriesPerDay, gridG, pue) {
       gpuSecTotal: scale(() => null),
     };
   }
-  return compute(model, qt.promptTok, qt.outTok, queriesPerDay, gridG, pue);
+  return compute(model, qt.promptTok, qt.outTok, queriesPerDay, gridG, pue, options);
 }
 
 function exampleResult(ex, gridG, pue) {

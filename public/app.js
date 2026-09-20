@@ -843,13 +843,16 @@ function currentInputs() {
   const queriesPerDay = parseInt($('queriesSlider').value, 10);
   const gridG = currentGrid().gCO2ePerKWh;
   const pue = parseFloat($('pueSlider').value);
-  return { model, promptTok, outTok, queriesPerDay, gridG, pue };
+  const servingFactor = parseFloat($('servingSelect').value);
+  const cacheHitRate = parseFloat($('cacheSlider').value) / 100;
+  const wueLPerKWh = parseFloat($('wueSlider').value);
+  return { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, wueLPerKWh };
 }
 
 function render() {
-  const { model, promptTok, outTok, queriesPerDay, gridG, pue } = currentInputs();
+  const { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, wueLPerKWh } = currentInputs();
   const qt = DATA.queryTypes.find((q) => q.id === $('queryType').value);
-  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue);
+  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue, { servingFactor, cacheHitRate, wueLPerKWh });
   const pq = r.perQuery;
 
   const e = fmtEnergyFixed(pq.wh);
@@ -877,8 +880,10 @@ function render() {
 
   $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}).`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
+  bindText('cacheLabel', `Reusable prompt cache: ${Math.round(cacheHitRate * 100)}%`);
+  bindText('wueLabel', `Combined water intensity: ${wueLPerKWh.toFixed(1)} L/kWh`);
   bindText('promptLabel', qt.fixedWh != null ? 'Prompt tokens: —' : `Prompt tokens: ${promptTok.toLocaleString()}`);
-  bindText('outLabel', qt.fixedWh != null ? 'Output tokens: —' : `Output tokens: ${outTok.toLocaleString()}`);
+  bindText('outLabel', qt.fixedWh != null ? 'Generated tokens: —' : `Generated tokens (including reasoning): ${outTok.toLocaleString()}`);
   bindText('queriesLabel', `Queries / day: ${queriesPerDay.toLocaleString()}`);
   $('modelSelect').title = model.energyNote;
 
@@ -926,7 +931,7 @@ function onQueryTypeChange() {
 
 function syncFixedTypeUI(qt) {
   const fixed = qt != null && qt.fixedWh != null;
-  ['modelSelect', 'promptSlider', 'outSlider', 'pueSlider'].forEach((id) => {
+  ['modelSelect', 'promptSlider', 'outSlider', 'servingSelect', 'cacheSlider', 'pueSlider'].forEach((id) => {
     $(id).disabled = fixed;
   });
   const hint = $('queryTypeHint');
@@ -941,7 +946,7 @@ function syncFixedTypeUI(qt) {
 }
 
 function bindControls() {
-  const ids = ['modelSelect', 'queryType', 'promptSlider', 'outSlider', 'queriesSlider', 'pueSlider'];
+  const ids = ['modelSelect', 'queryType', 'promptSlider', 'outSlider', 'servingSelect', 'cacheSlider', 'queriesSlider', 'pueSlider', 'wueSlider'];
   ids.forEach((id) => $(id).addEventListener('input', render));
   $('queryType').addEventListener('change', () => {
     onQueryTypeChange();
@@ -998,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .map((q) => `<option value="${q.id}">${q.label}</option>`)
     .join('');
   $('pueSlider').value = DATA.defaultPue;
+  $('wueSlider').value = totalWue();
   syncFixedTypeUI(DATA.queryTypes.find((q) => q.id === qtSel.value));
 
   populateMainEstimator();
