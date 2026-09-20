@@ -322,7 +322,6 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="tab-estimator">Estimate</button>
       <button class="tab-btn" data-tab="tab-examples">Examples &amp; Comparisons</button>
-      <button class="tab-btn" data-tab="tab-compare">Web Search vs AI</button>
       <button class="tab-btn" data-tab="tab-advanced">Advanced</button>
       <button class="tab-btn" data-tab="tab-outlook">Big picture</button>
       <button class="tab-btn" data-tab="tab-sources">Evidence</button>
@@ -385,8 +384,8 @@
 
     <section class="tab" id="tab-examples">
       <div class="card">
-        <h2>Common AI queries and what they really cost</h2>
-        <p class="hint" style="margin-bottom:16px;">Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices (OpenAI, Anthropic, Google, DeepSeek) — not AUD. The <a href="#" data-goto="tab-advanced">advanced calculator</a> exposes the technical parameters.</p>
+        <h2>Illustrative AI-use scenarios</h2>
+        <p class="hint" style="margin-bottom:16px;">These are scenarios, not provider telemetry. Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices—not AUD. Use the <a href="#" data-goto="tab-advanced">advanced calculator</a> for technical parameters or see the <a href="#" data-goto="tab-compare">search-versus-AI evidence</a>.</p>
         <div class="scatter-controls">
           <label>Bubble axis: <select id="scatterMetric">
             <option value="usd">Cost (USD)</option>
@@ -396,7 +395,7 @@
           <label>Grid: <select id="gridSelectExamples"></select></label>
         </div>
         <div class="chart-box" style="height:360px;margin-bottom:16px;"><div id="examplesScatter"></div></div>
-        <p class="hint" style="margin-bottom:16px;">Each numbered bubble is one example. Position = energy (Wh) vs the selected axis, size = water, colour = task group. The <strong>K</strong> bubble is boiling a kettle (~160 Wh, about 1.75 L, about A$0.057 per boil). Hover any bubble to see its numbers. Energy, CO2e, water and cost for every example are also in the table below. <a href="https://www.energyaustralia.com.au/sites/default/files/2021-11/one-dollar-electricity.pdf" target="_blank" rel="noopener">Kettle source</a> · <a href="https://www.choice.com.au/home-and-living/kitchen/kettles-and-tea-makers/buying-guides/kettles" target="_blank" rel="noopener">CHOICE</a> · <a href="https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill" target="_blank" rel="noopener">Electricity tariff</a>.</p>
+        <p class="hint" style="margin-bottom:16px;">Each numbered bubble is one example. Position = energy (Wh) vs the selected axis, size = water, colour = task group. The <strong>K</strong> bubble is boiling a kettle (~160 Wh, about A$0.057 per boil); it is omitted from the water view because water boiled at home is not comparable with data-centre water consumption. Hover any bubble to see its numbers. <a href="https://www.energyaustralia.com.au/sites/default/files/2021-11/one-dollar-electricity.pdf" target="_blank" rel="noopener">Kettle source</a> · <a href="https://www.choice.com.au/home-and-living/kitchen/kettles-and-tea-makers/buying-guides/kettles" target="_blank" rel="noopener">CHOICE</a> · <a href="https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill" target="_blank" rel="noopener">Electricity tariff</a>.</p>
         <div id="staticExamples"></div>
       </div>
 
@@ -616,6 +615,15 @@
     </section>
 
     <section class="tab" id="tab-sources">
+      <div class="card">
+        <h2>How evidence is used</h2>
+        <div class="grid3">
+          <div class="method"><h3>Reviewed research</h3><p>Sets the public estimator’s default ranges and carries the most weight.</p></div>
+          <div class="method"><h3>Official sources</h3><p>Provide grid, policy and infrastructure context from governments and institutions.</p></div>
+          <div class="method"><h3>Emerging evidence</h3><p>Preprints and vendor claims are clearly labelled and do not silently define reviewed defaults.</p></div>
+        </div>
+        <p class="hint" style="margin-top:12px;"><span class="badge">Evidence checked 18 August 2026</span> Actual per-request provider telemetry is generally unavailable, so results remain estimates.</p>
+      </div>
       <div class="card">
         <h2>Method &amp; caveats</h2>
         <p class="hint" style="margin-bottom:12px;">

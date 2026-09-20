@@ -271,18 +271,18 @@ function buildExamplesScatter(metricKey = 'usd') {
     totalAud: kettleElectricityAud + kettleCapitalAud,
     costUsd: (kettleElectricityAud + kettleCapitalAud) * kettleAssumptions.audUsd,
   };
-  points.push({
-    x: kettle.wh,
-    // Full kettle boils ~1.75 L; place it at that real volume so the
-    // water axis stays honest, and explain the boundary in the tooltip.
-    y: metric.y(kettle),
-    size: 0,
-    color: GROUP_COLORS['Household reference'],
-    group: 'Household reference',
-    label: 'K',
-    reference: true,
-    kettle,
-  });
+  if (metricKey !== 'water') {
+    points.push({
+      x: kettle.wh,
+      y: metric.y(kettle),
+      size: 0,
+      color: GROUP_COLORS['Household reference'],
+      group: 'Household reference',
+      label: 'K',
+      reference: true,
+      kettle,
+    });
+  }
   svgScatterChart('examplesScatter', points, {
     yLabel: metric.label,
     tip: (p) => {
@@ -798,6 +798,11 @@ function formattedMetric(formatter, value) {
   return `${f.v} ${f.u}`.trim();
 }
 
+function formattedWater(value) {
+  if (value > 0 && value < 0.1) return '<0.1 ml';
+  return formattedMetric(fmtWaterFixed, value);
+}
+
 function simpleNumber(value) {
   if (value > 0 && value < 0.1) return '<0.1';
   if (value < 10) return value.toFixed(1).replace(/\.0$/, '');
@@ -813,10 +818,10 @@ function renderMainEstimate() {
 
   bindText('mainEnergy', formattedMetric(fmtEnergyFixed, typical.energyWh));
   bindText('mainCo2', formattedMetric(fmtCo2Fixed, typical.co2G));
-  bindText('mainWater', formattedMetric(fmtWaterFixed, typical.waterMl));
+  bindText('mainWater', formattedWater(typical.waterMl));
   bindText('mainEnergyRange', `Research range: ${formattedMetric(fmtEnergyFixed, r.perUse.low.energyWh)}–${formattedMetric(fmtEnergyFixed, r.perUse.high.energyWh)}`);
   bindText('mainCo2Range', `Range on this grid: ${formattedMetric(fmtCo2Fixed, r.perUse.low.co2G)}–${formattedMetric(fmtCo2Fixed, r.perUse.high.co2G)}`);
-  bindText('mainWaterRange', `Scenario range: ${formattedMetric(fmtWaterFixed, r.perUse.low.waterMl)}–${formattedMetric(fmtWaterFixed, r.perUse.high.waterMl)}`);
+  bindText('mainWaterRange', `Scenario range: ${formattedWater(r.perUse.low.waterMl)}–${formattedWater(r.perUse.high.waterMl)}`);
 
   const month = r.monthly.typical;
   const phoneCharges = month.energyWh / DATA.equivalents.smartphoneChargeWh;
