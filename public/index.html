@@ -325,7 +325,7 @@
       <button class="tab-btn" data-tab="tab-examples">Examples &amp; Comparisons</button>
       <button class="tab-btn" data-tab="tab-advanced">Advanced</button>
       <button class="tab-btn" data-tab="tab-outlook">Big picture</button>
-      <button class="tab-btn" data-tab="tab-sources">Evidence</button>
+      <button class="tab-btn" data-tab="tab-sources">Sources &amp; method</button>
     </nav>
 
     <section class="tab active" id="tab-estimator">
@@ -617,26 +617,16 @@
 
     <section class="tab" id="tab-sources">
       <div class="card">
-        <h2>How evidence is used</h2>
+        <h2>How estimates work</h2>
         <div class="grid3">
-          <div class="method"><h3>Reviewed research</h3><p>Sets the public estimator’s default ranges and carries the most weight.</p></div>
-          <div class="method"><h3>Official sources</h3><p>Provide grid, policy and infrastructure context from governments and institutions.</p></div>
-          <div class="method"><h3>Emerging evidence</h3><p>Preprints and vendor claims are clearly labelled and do not silently define reviewed defaults.</p></div>
+          <div class="method"><h3>Energy</h3><p>Published task measurements or transparent token scenarios.</p></div>
+          <div class="method"><h3>CO2 &amp; water</h3><p>Derived from energy using the selected grid and water-intensity scenario.</p></div>
+          <div class="method"><h3>Limits</h3><p>Results are research-based ranges, not provider telemetry.</p></div>
         </div>
-        <p class="hint" style="margin-top:12px;">Actual per-request provider telemetry is generally unavailable, so results remain estimates.</p>
+        <p class="hint" style="margin-top:12px;">Hardware, model, batching, location and output length can materially change results.</p>
       </div>
       <div class="card">
-        <h2>Method &amp; caveats</h2>
-        <p class="hint" style="margin-bottom:12px;">
-          No public study measures a single end-user chatbot query end-to-end (provider data is proprietary).
-          Per-query energy here is derived from published per-token / per-inference measurements (2025–2026 papers)
-          combined with your inputs: prefill and decode energy per token, PUE overhead, Australian grid carbon
-          intensity (~500 g CO2e/kWh, IEA) and API list pricing. Water is derived from energy using a composite
-          scenario of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI; 3.4 L/kWh indirect power-plant water,
-          Patterns 2026). This combines separate published boundaries; it is not a measured universal average. Figures are mid-range assumptions
-          — real values vary by hardware, model version, batching, context length and provider location. CO2 depends
-          heavily on grid mix; water depends on cooling technology and region. Treat results as order-of-magnitude estimates.
-        </p>
+        <h2>Sources</h2>
         <p class="hint" style="margin-bottom:12px;">Sources are grouped by trust level and ordered by publication year, newest first.</p>
         <div id="sourceList"></div>
       </div>
