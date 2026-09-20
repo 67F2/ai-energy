@@ -194,8 +194,9 @@
     .source-cat { margin-bottom: 20px; }
     .source-cat h3 { margin: 0 0 4px 0; font-size: 17px; }
     .source-cat .hint { margin: 0 0 8px 0; font-size: 15px; }
-    .source-cat ul { padding-left: 18px; margin: 0; }
-    .source-cat li { margin-bottom: 8px; font-size: 15px; color: var(--muted); }
+    .source-cat ul { padding: 0; margin: 0; list-style: none; }
+    .source-cat li { display: grid; grid-template-columns: 48px 1fr; gap: 10px; margin-bottom: 9px; font-size: 15px; color: var(--muted); }
+    .source-year { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
     footer { margin-top: 40px; padding: 20px 0 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 15px; text-align: center; }
     footer .tagline { margin: 0 auto; line-height: 1.5; }
     footer ul { padding-left: 18px; margin-top: 8px; text-align: left; }
@@ -366,7 +367,7 @@
             <div class="range" id="mainCo2Range">—</div>
           </div>
           <div class="simple-metric">
-            <div class="label">Water per use</div>
+            <div class="label">Water estimate per use</div>
             <div class="value" id="mainWater">—</div>
             <div class="range" id="mainWaterRange">—</div>
           </div>
@@ -385,7 +386,7 @@
     <section class="tab" id="tab-examples">
       <div class="card">
         <h2>Illustrative AI-use scenarios</h2>
-        <p class="hint" style="margin-bottom:16px;">These are scenarios, not provider telemetry. Fixed estimates use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices—not AUD. Use the <a href="#" data-goto="tab-advanced">advanced calculator</a> for technical parameters or see the <a href="#" data-goto="tab-compare">search-versus-AI evidence</a>.</p>
+        <p class="hint" style="margin-bottom:16px;">These are scenarios, not provider telemetry. Fixed estimates retain the cited study's energy boundary; token scenarios use a typical data-centre PUE of 1.35. Costs are US-dollar API list prices—not AUD. Use the <a href="#" data-goto="tab-advanced">advanced calculator</a> for technical parameters or see the <a href="#" data-goto="tab-compare">search-versus-AI evidence</a>.</p>
         <div class="scatter-controls">
           <label>Bubble axis: <select id="scatterMetric">
             <option value="usd">Cost (USD)</option>
@@ -622,7 +623,7 @@
           <div class="method"><h3>Official sources</h3><p>Provide grid, policy and infrastructure context from governments and institutions.</p></div>
           <div class="method"><h3>Emerging evidence</h3><p>Preprints and vendor claims are clearly labelled and do not silently define reviewed defaults.</p></div>
         </div>
-        <p class="hint" style="margin-top:12px;"><span class="badge">Evidence checked 18 August 2026</span> Actual per-request provider telemetry is generally unavailable, so results remain estimates.</p>
+        <p class="hint" style="margin-top:12px;">Actual per-request provider telemetry is generally unavailable, so results remain estimates.</p>
       </div>
       <div class="card">
         <h2>Method &amp; caveats</h2>
@@ -630,14 +631,14 @@
           No public study measures a single end-user chatbot query end-to-end (provider data is proprietary).
           Per-query energy here is derived from published per-token / per-inference measurements (2025–2026 papers)
           combined with your inputs: prefill and decode energy per token, PUE overhead, Australian grid carbon
-          intensity (~500 g CO2e/kWh, IEA) and API list pricing. Water is derived from energy using the total
-          data-centre WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI; 3.4 L/kWh indirect power-plant water,
-          Patterns 2026). Figures are mid-range assumptions
+          intensity (~500 g CO2e/kWh, IEA) and API list pricing. Water is derived from energy using a composite
+          scenario of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI; 3.4 L/kWh indirect power-plant water,
+          Patterns 2026). This combines separate published boundaries; it is not a measured universal average. Figures are mid-range assumptions
           — real values vary by hardware, model version, batching, context length and provider location. CO2 depends
           heavily on grid mix; water depends on cooling technology and region. Treat results as order-of-magnitude estimates.
         </p>
-        <p class="hint" style="margin-bottom:12px;">Sources are grouped by trust level, from peer-reviewed papers (most weight) down to vendor self-reports (treated as promotional).</p>
-        <ul id="sourceList"></ul>
+        <p class="hint" style="margin-bottom:12px;">Sources are grouped by trust level and ordered by publication year, newest first.</p>
+        <div id="sourceList"></div>
       </div>
     </section>
 

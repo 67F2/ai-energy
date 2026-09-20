@@ -494,8 +494,10 @@ function renderSources() {
   const cats = SOURCE_CATS.map((c) => {
     const links = Object.values(SOURCES)
       .filter((s) => s.cat === c.id)
+      .map((s, order) => ({ s, order, year: sourcePublicationYear(s) }))
+      .sort((a, b) => b.year - a.year || a.order - b.order)
       .map(
-        (s) => `<li><a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a> — ${s.ref}.${s.accessed ? ` Accessed ${s.accessed}.` : ''} ${s.note}</li>`
+        ({ s, year }) => `<li><span class="source-year">${year || 'n.d.'}</span><span><a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a> — ${s.ref}.${s.accessed ? ` Accessed ${s.accessed}.` : ''} ${s.note}</span></li>`
       )
       .join('');
     if (!links) return '';
@@ -506,6 +508,11 @@ function renderSources() {
     </div>`;
   }).join('');
   $('sourceList').innerHTML = cats;
+}
+
+function sourcePublicationYear(source) {
+  const match = `${source.ref} ${source.label}`.match(/\b(19|20)\d{2}\b/g);
+  return match ? Math.max(...match.map(Number)) : 0;
 }
 
 function renderMethodology() {
@@ -538,7 +545,7 @@ function renderMethodology() {
         <p class="hint">Public API list prices per 1M tokens (${src('openaiPrice')}, ${src('anthropicPrice')}).</p>
       </div>
     </div>
-    <p class="hint" style="margin-top:12px;">Fixed examples (AI images, video clips, audio transcription) use published per-inference measurements instead of the token formula — each row links its source. All figures are order-of-magnitude estimates: providers do not publish per-query telemetry.</p>
+    <p class="hint" style="margin-top:12px;">Fixed examples (AI images, video clips, audio transcription) retain each study's published energy boundary instead of adding the adjustable PUE. CO2 and water are then derived with the selected grid and the dashboard's water scenario. Each row links its source.</p>
   `;
   $('methodology').innerHTML = html;
 }
@@ -735,7 +742,7 @@ function renderStaticExamples() {
       return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
     })
     .join('');
-  const wueCard = `<div class="metric"><div class="v" id="wueValue">${wueTotal} L/kWh</div><div class="u">avg data-centre WUE (direct + indirect)${wueSourceLink('cellReports')}</div></div>`;
+  const wueCard = `<div class="metric"><div class="v" id="wueValue">${wueTotal} L/kWh</div><div class="u">composite water-intensity scenario${wueSourceLink('cellReports')}</div></div>`;
   $('referenceCards').innerHTML = refCards + wueCard;
   $('glossary').innerHTML = '<strong>Abbreviations:</strong> CO2e = CO2-equivalent greenhouse gases · WUE = water used per unit of electricity (L/kWh) · Mt = million tonnes · B L = billion litres · Wh/g/ml/USD = per-query units.';
 

@@ -1,4 +1,4 @@
-const VERSION = 'v14';
+const VERSION = 'v15';
 
 const SOURCES = {
   wattgpu: {
@@ -574,13 +574,13 @@ const DATA = {
       id: 'short-text',
       label: 'Short text task',
       description: 'A brief rewrite, classification or compact answer.',
-      energyWh: { low: 0.007, typical: 0.05, high: 0.16 },
+      energyWh: { low: 0.002, typical: 0.047, high: 0.16 },
       evidence: 'peer',
       evidenceLabel: 'Peer-reviewed measurements',
       source: 'powerHungry',
-      supportingSources: ['sustainableNlp'],
+      supportingSources: ['sustainableNlp', 'jouleInference'],
       boundary: 'Operational inference energy; measured open models and tasks.',
-      note: 'Short tasks vary sharply with model choice. The range spans efficient task-specific work to the lower edge of frontier chat estimates.',
+      note: 'The low and typical values follow measured task-specific classification and text generation; the high value is the lower edge of the frontier-chat range.',
     },
     {
       id: 'standard-chat',
@@ -610,13 +610,13 @@ const DATA = {
       id: 'image',
       label: 'Generate an AI image',
       description: 'One text-to-image generation; model and output size matter greatly.',
-      energyWh: { low: 0.06, typical: 2.9, high: 11.49 },
+      energyWh: { low: 0.34, typical: 2.9, high: 11.49 },
       evidence: 'peer',
       evidenceLabel: 'Peer-reviewed measurements',
       source: 'powerHungry',
       supportingSources: ['mlEnergyDiagnostics'],
       boundary: 'Operational inference measured across open text-to-image models.',
-      note: 'The study found a very wide spread across models and image sizes; 2.9 Wh is the reported mean.',
+      note: 'The study found a very wide spread across image-generation models; 0.34 Wh is derived from its approximate lowest-model result, 2.9 Wh is the reported mean and 11.49 Wh the reported high.',
     },
     {
       id: 'transcription',
@@ -756,7 +756,6 @@ const DATA = {
   referenceCards: [
     { value: '~0.31 Wh', label: 'peer-reviewed frontier-inference calibration', source: 'jouleInference' },
     { value: '~519 ml', label: 'water per 100-word AI prompt', source: 'eesiWater' },
-    { value: '~0.31 Wh', label: 'a ChatGPT query (median, Joule 2026)', source: 'jouleInference' },
     { value: '~0.3 Wh', label: 'a Google search (de Vries)', source: 'devries' },
   ],
 
@@ -776,7 +775,7 @@ const DATA = {
     { label: 'ChatGPT water, per prompt (Li et al. 2023)', value: 15, unit: 'ml', source: 'thirsty' },
     { label: '100-word AI prompt water (UC Riverside / EESI)', value: 519, unit: 'ml', source: 'eesiWater' },
     { label: 'Data centre avg WUE (direct only)', value: 1.9, unit: 'L/kWh', source: 'eesiWater' },
-    { label: 'Data centre total WUE (direct + indirect)', value: 5.3, unit: 'L/kWh', source: 'cellReports' },
+    { label: 'Composite water intensity (direct + indirect)', value: 5.3, unit: 'L/kWh', source: 'cellReports' },
     { label: 'AI share of DC electricity, end-2024 (de Vries-Gao)', value: 20, unit: '%', source: 'cellReports' },
     { label: 'AI power demand (2024 -> 2025, de Vries-Gao)', value: 23, unit: 'GW', source: 'cellReports' },
     { label: 'AI carbon footprint 2025 (de Vries-Gao)', value: 79.7, unit: 'Mt CO2', source: 'cellReports' },
@@ -807,7 +806,7 @@ const DATA = {
     ],
     waterBenchmark2030TrillionL: 9.3,
     macroWaterNotes: [
-      { text: 'Derived global data-centre water = electricity (TWh) x total WUE (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030). This is a transparent lower-bound scenario, not a measured global total.', sources: ['cellReports', 'eesiWater', 'npjWater', 'sustainableWater'] },
+      { text: 'Derived global data-centre water = electricity (TWh) x composite water intensity (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030). This is a transparent lower-bound scenario, not a measured global total.', sources: ['cellReports', 'eesiWater', 'npjWater', 'sustainableWater'] },
       { text: 'UNU-INWEH projects a much larger ~9.3 trillion L by 2030 once AI-specific footprint growth is included; the derived line is therefore a conservative lower bound.', sources: ['unricAi'] },
       { text: 'AI water footprint 2025: 312.5-764.6B L, roughly the entire global annual bottled-water market (Patterns 2026).', sources: ['cellReports'] },
       { text: 'Indirect (power-plant) water dominates and is under-reported: ~3.4 L/kWh actual vs ~1.04 L/kWh IEA-implied; only Meta reports it (Patterns 2026 / WSJ).', sources: ['cellReports', 'wsjWater'] },
