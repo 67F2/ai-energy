@@ -20,8 +20,9 @@ const currentGrid = () => DATA.gridIntensity;
 function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   const jIn = promptTok * model.jPerInTok;
   const jOut = outTok * model.jPerOutTok;
-  const joules = (jIn + jOut) * pue;
-  const wh = joules / 3600;
+  const itJoules = jIn + jOut;
+  const facilityJoules = itJoules * pue;
+  const wh = facilityJoules / 3600;
   const kWh = wh / 1000;
   const gCO2e = kWh * gridG;
   const costUsd =
@@ -30,7 +31,9 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   // Primary water estimate uses source WUE only. Published prompt-level
   // estimates use different system boundaries and remain reference figures.
   const waterMl = kWh * wue * 1000;
-  const gpuSec = joules / model.gpuPowerW;
+  // Accelerator-equivalent runtime is based on IT energy only. PUE represents
+  // facility overhead (cooling, power distribution), not extra GPU runtime.
+  const gpuSec = itJoules / model.gpuPowerW;
 
   const scale = (f) => ({
     perQuery: f(1),
@@ -40,7 +43,7 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   });
 
   return {
-    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut },
+    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut, itJoules, facilityJoules },
     energyWh: scale((n) => wh * n),
     co2G: scale((n) => gCO2e * n),
     cost: scale((n) => costUsd * n),
@@ -54,7 +57,6 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
 // same way exampleResult() does.
 function computeQueryType(model, qt, queriesPerDay, gridG, pue) {
   if (qt.fixedWh != null) {
-    const wm = DATA.waterModel;
     const wh = qt.fixedWh;
     const gCO2e = qt.fixedCo2G != null ? qt.fixedCo2G : wh * (gridG / 1000);
     const baseline = qt.fixedBaselineMl != null ? qt.fixedBaselineMl : 0;
@@ -81,7 +83,6 @@ function computeQueryType(model, qt, queriesPerDay, gridG, pue) {
 
 function exampleResult(ex, gridG, pue) {
   if (ex.fixedWh != null) {
-    const wm = DATA.waterModel;
     const wh = ex.fixedWh;
     const gCO2e = ex.fixedCo2G != null ? ex.fixedCo2G : wh * (gridG / 1000);
     const baseline = ex.fixedBaselineMl != null ? ex.fixedBaselineMl : 0;

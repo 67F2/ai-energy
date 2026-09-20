@@ -365,7 +365,7 @@
     <section class="tab" id="tab-compare">
       <div class="card">
         <h2>Web search vs AI — which tool for which job?</h2>
-        <p class="hint" style="margin-bottom:16px;">A single search is a fraction of a single chat query's energy, but both are tiny. The right choice balances task, accuracy and footprint. For everyday search, Ecosia is the more sustainable option: it runs on 100% renewable energy and produces ~2x the renewable energy its searches use. Per-query figures below are published estimates; Ecosia reports no per-query figure (it publishes audited aggregates).</p>
+        <p class="hint" style="margin-bottom:16px;">Published per-query estimates for web search and AI vary substantially and are not directly comparable across system boundaries. The right choice balances task, accuracy and footprint. For everyday search, Ecosia reports that it runs on 100% renewable energy and produces ~2x the renewable energy its searches use. Ecosia publishes audited aggregates but no official per-query energy figure.</p>
         <div style="overflow-x:auto;">
           <table>
             <thead><tr><th>Tool</th><th>Energy / query</th><th>CO2e / query</th><th>Cost / query</th><th>Note</th><th>Source</th></tr></thead>
@@ -430,7 +430,7 @@
             <label for="pueSlider" id="pueLabel">PUE</label>
             <input type="range" id="pueSlider" min="1.00" max="2.00" step="0.01" value="1.35" />
           </div>
-          <p class="hint">PUE (Power Usage Effectiveness) ~1.1–1.6 for modern facilities. Applies the data-center overhead to every query. Water is derived from energy via total WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI + 3.4 L/kWh indirect power-plant water, Patterns 2026).</p>
+          <p class="hint">PUE (Power Usage Effectiveness) ~1.1–1.6 for modern facilities. It applies data-centre overhead to token-based estimates. Fixed media presets already use published whole-inference measurements, so their PUE control is disabled. Water is derived from energy via total WUE of ~5.3 L/kWh (1.9 L/kWh direct cooling, EESI + 3.4 L/kWh indirect power-plant water, Patterns 2026).</p>
             </div>
         </section>
 
@@ -442,7 +442,7 @@
               <div class="metric"><div class="v" id="vCo2">–</div><div class="u">CO2e</div></div>
               <div class="metric"><div class="v" id="vCost">–</div><div class="u">Cost (USD)</div></div>
               <div class="metric"><div class="v" id="vWater">–</div><div class="u">Water</div></div>
-              <div class="metric"><div class="v" id="vGpu">–</div><div class="u">GPU time</div></div>
+              <div class="metric"><div class="v" id="vGpu">–</div><div class="u">Accelerator-equivalent time</div></div>
             </div>
           </div>
 
@@ -453,7 +453,7 @@
               <div class="metric"><div class="v" id="vMonthCo2">–</div><div class="u">CO2e</div></div>
               <div class="metric"><div class="v" id="vMonthCost">–</div><div class="u">Cost (USD)</div></div>
               <div class="metric"><div class="v" id="vMonthWater">–</div><div class="u">Water</div></div>
-              <div class="metric"><div class="v" id="vMonthGpu">–</div><div class="u">GPU time</div></div>
+              <div class="metric"><div class="v" id="vMonthGpu">–</div><div class="u">Accelerator-equivalent time</div></div>
             </div>
             <h3>In common terms</h3>
             <div class="eq-grid" id="equivalents"></div>

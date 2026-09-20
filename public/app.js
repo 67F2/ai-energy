@@ -243,7 +243,7 @@ const SCATTER_METRICS = {
 
 function buildExamplesScatter(metricKey = 'usd') {
   const gridG = currentGrid().gCO2ePerKWh;
-  const pue = 1.35;
+  const pue = DATA.defaultPue;
   const metric = SCATTER_METRICS[metricKey] || SCATTER_METRICS.usd;
   const points = EXAMPLES.map((ex) => {
     const r = exampleResult(ex, gridG, pue).perQuery;
@@ -310,7 +310,7 @@ function buildEnergyChart() {
   const gridG = currentGrid().gCO2ePerKWh;
   const labels = DATA.models.map((m) => m.name);
   const values = DATA.models.map((m) =>
-    compute(m, 200, 400, 1, gridG, 1.35).perQuery.wh
+    compute(m, 200, 400, 1, gridG, DATA.defaultPue).perQuery.wh
   );
   svgBarChart(
     'energyChart',
@@ -325,7 +325,7 @@ function buildCostChart() {
   const gridG = currentGrid().gCO2ePerKWh;
   const labels = DATA.models.map((m) => m.name);
   const values = DATA.models.map((m) =>
-    compute(m, 200, 400, 1, gridG, 1.35).perQuery.costUsd * 1000
+    compute(m, 200, 400, 1, gridG, DATA.defaultPue).perQuery.costUsd * 1000
   );
   svgBarChart('costChart', labels, values, DATA.models.map(() => '#5b8ff9'), { yUnit: 'USD per 1,000 queries' });
 }
@@ -387,7 +387,7 @@ function renderAggTable(r) {
     ['CO2e', 'g', fmtCo2, fmtCo2Fixed],
     ['Cost', '$', fmtCost, fmtCostFixed],
     ['Water', 'ml', fmtWater, fmtWaterFixed],
-    ['GPU time', 's', fmtGpu, fmtGpu],
+    ['Accelerator-equivalent time', 's', fmtGpu, fmtGpu],
   ];
   const headers = ['Metric', 'Per query', 'Per day', 'Per month', 'Per year'];
   const body = rows
@@ -430,7 +430,7 @@ function exampleEqText(ex, gridG, pue) {
 
 function renderCompareTab() {
   const gridG = currentGrid().gCO2ePerKWh;
-  const pue = 1.35;
+  const pue = DATA.defaultPue;
   const fmtCells = (wh, gCO2e, costUsd) => {
     const e = wh == null ? '—' : `${fmtEnergyFixed(wh).v} ${fmtEnergyFixed(wh).u}`;
     const c = gCO2e == null ? '—' : `${fmtCo2Fixed(gCO2e).v} ${fmtCo2Fixed(gCO2e).u}`;
@@ -511,7 +511,7 @@ function renderSources() {
 function renderMethodology() {
   const wm = DATA.waterModel;
   const wueTotal = totalWue();
-  const pue = 1.35;
+  const pue = DATA.defaultPue;
   const gridG = currentGrid().gCO2ePerKWh;
 
   const html = `
@@ -520,7 +520,7 @@ function renderMethodology() {
       <div class="method">
         <h3>⚡ Energy</h3>
         <p><code>Wh = (promptTok × J/input + outTok × J/output) × PUE ÷ 3600</code></p>
-        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks; the default is calibrated against the peer-reviewed ${src('jouleInference')} median. PUE overhead ${pue}× is an adjustable assumption.</p>
+        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks and checked against the peer-reviewed ${src('jouleInference')} range; they are not provider telemetry. PUE overhead ${pue}× is an adjustable assumption.</p>
       </div>
       <div class="method">
         <h3>🌡️ CO2</h3>
@@ -626,17 +626,15 @@ function buildTrainingChart() {
   const innerW = W - padL - padR, innerH = H - padT - padB;
 
   const gridG = currentGrid().gCO2ePerKWh;
-  const r = compute(DATA.models[0], 200, 400, 1, gridG, 1.35).perQuery;
+  const r = compute(DATA.models[0], 200, 400, 1, gridG, DATA.defaultPue).perQuery;
   const queryG = r.gCO2e;
   const yearG = queryG * 30 * 365;
   const trainG = 284e6;
-  const embodiedG = trainG * 0.2;
 
   const bars = [
     { label: 'A single query', v: queryG, color: '#5b8ff9' },
     { label: 'Your AI use (30/day, 1 yr)', v: yearG, color: '#84a98c' },
-    { label: 'Embodied (manufacture) share', v: embodiedG, color: '#7c5cd6' },
-    { label: 'Training one large model', v: trainG, color: '#f28482' },
+    { label: 'Historical training programme', v: trainG, color: '#f28482' },
   ];
   const linearMax = niceMax(trainG * 1.1);
   const xAt = (v) => padL + (v / linearMax) * innerW;
@@ -687,7 +685,7 @@ function buildTrainingChart() {
 
 function renderStaticExamples() {
   const gridG = currentGrid().gCO2ePerKWh;
-  const pue = 1.35;
+  const pue = DATA.defaultPue;
   const wm = DATA.waterModel;
 
   let idx = 0;
@@ -753,7 +751,7 @@ function renderStaticExamples() {
 }
 
 function renderEverydayTable(gridG) {
-  const pue = 1.35;
+  const pue = DATA.defaultPue;
   const emailG = exampleResult(EXAMPLES[0], gridG, pue).perQuery.gCO2e;
   const chatG = 0.31 / 1000 * gridG;
   const imageG = 2.9 / 1000 * gridG;
@@ -881,7 +879,7 @@ function onQueryTypeChange() {
 
 function syncFixedTypeUI(qt) {
   const fixed = qt != null && qt.fixedWh != null;
-  ['modelSelect', 'promptSlider', 'outSlider'].forEach((id) => {
+  ['modelSelect', 'promptSlider', 'outSlider', 'pueSlider'].forEach((id) => {
     $(id).disabled = fixed;
   });
   const hint = $('queryTypeHint');
@@ -949,6 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
   qtSel.innerHTML = DATA.queryTypes
     .map((q) => `<option value="${q.id}">${q.label}</option>`)
     .join('');
+  $('pueSlider').value = DATA.defaultPue;
   syncFixedTypeUI(DATA.queryTypes.find((q) => q.id === qtSel.value));
 
   populateGridSelects();

@@ -495,6 +495,7 @@ for (const id of [
 }
 
 const DATA = {
+  defaultPue: 1.35,
   kettle: {
     energyWh: 160,
     purchaseAud: 50,
@@ -614,7 +615,7 @@ const DATA = {
   ],
 
   trainingEmbodied: [
-    { value: '~284 t CO2e', label: 'training a large transformer (GPT-3-era)', source: 'strubell2019' },
+    { value: '~284 t CO2e', label: 'historical transformer training programme estimate', source: 'strubell2019' },
     { value: '~700,000 L', label: 'water to train GPT-3 (estimated)', source: 'thirsty' },
     { value: '~20% of lifecycle', label: 'typical share of embodied (hardware) carbon in a model footprint', source: 'llmcarbon' },
     { value: '80-90%', label: 'share of AI energy spent on inference, not training (UNU-INWEH)', source: 'unricAi' },
