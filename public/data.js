@@ -1,4 +1,4 @@
-const VERSION = 'v12';
+const VERSION = 'v13';
 
 const SOURCES = {
   wattgpu: {
@@ -496,6 +496,74 @@ for (const id of [
 
 const DATA = {
   defaultPue: 1.35,
+  taskProfiles: [
+    {
+      id: 'short-text',
+      label: 'Short text task',
+      description: 'A brief rewrite, classification or compact answer.',
+      energyWh: { low: 0.007, typical: 0.05, high: 0.16 },
+      evidence: 'peer',
+      evidenceLabel: 'Peer-reviewed measurements',
+      source: 'powerHungry',
+      boundary: 'Operational inference energy; measured open models and tasks.',
+      note: 'Short tasks vary sharply with model choice. The range spans efficient task-specific work to the lower edge of frontier chat estimates.',
+    },
+    {
+      id: 'standard-chat',
+      label: 'Standard AI chat',
+      description: 'A conventional answer with roughly 500 input and 300 output tokens.',
+      energyWh: { low: 0.16, typical: 0.31, high: 0.60 },
+      evidence: 'peer',
+      evidenceLabel: 'Peer-reviewed estimate',
+      source: 'jouleInference',
+      boundary: 'Operational inference including production-serving assumptions and PUE.',
+      note: 'The range is the published interquartile range for frontier-scale inference, not provider telemetry.',
+    },
+    {
+      id: 'reasoning',
+      label: 'Long reasoning answer',
+      description: 'A reasoning-heavy response with roughly 5,000 generated tokens.',
+      energyWh: { low: 2.15, typical: 3.91, high: 7.05 },
+      evidence: 'peer',
+      evidenceLabel: 'Peer-reviewed estimate',
+      source: 'jouleInference',
+      boundary: 'Operational inference including production-serving assumptions and PUE.',
+      note: 'The range is the published interquartile range for the study’s test-time-scaling scenario.',
+    },
+    {
+      id: 'image',
+      label: 'Generate an AI image',
+      description: 'One text-to-image generation; model and output size matter greatly.',
+      energyWh: { low: 0.06, typical: 2.9, high: 11.49 },
+      evidence: 'peer',
+      evidenceLabel: 'Peer-reviewed measurements',
+      source: 'powerHungry',
+      boundary: 'Operational inference measured across open text-to-image models.',
+      note: 'The study found a very wide spread across models and image sizes; 2.9 Wh is the reported mean.',
+    },
+    {
+      id: 'transcription',
+      label: 'Transcribe one hour of audio',
+      description: 'Cloud or locally run speech-to-text for one audio hour.',
+      energyWh: { low: 9, typical: 16, high: 24 },
+      evidence: 'peer',
+      evidenceLabel: 'Peer-reviewed measurements',
+      source: 'asrCompare',
+      boundary: 'Operational inference; range spans measured/estimated cloud and local systems.',
+      note: 'Derived from the study’s totals for approximately 22.2 hours of audio; deployment choice changes the result.',
+    },
+    {
+      id: 'video',
+      label: 'Generate a short AI video',
+      description: 'One short diffusion-video clip; resolution, frames and steps dominate.',
+      energyWh: { low: 90, typical: 90, high: 415 },
+      evidence: 'preprint',
+      evidenceLabel: 'Emerging research',
+      source: 'videoEnergy',
+      boundary: 'Operational GPU measurement for two WAN2.1 configurations.',
+      note: 'Evidence is an unreviewed workshop preprint. The low/typical case is the 1.3B model; the high case is the 14B model.',
+    },
+  ],
   kettle: {
     energyWh: 160,
     purchaseAud: 50,

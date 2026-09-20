@@ -16,6 +16,47 @@ const totalWue = () => DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPe
 // NOTE: onGridChange() mutates DATA.gridIntensity directly; access is
 // centralised here so a future refactor can move the state out of DATA.
 const currentGrid = () => DATA.gridIntensity;
+const profileById = (id) => DATA.taskProfiles.find((p) => p.id === id);
+
+// Main-page task profiles are complete measured/modelled scenarios. Their
+// energy ranges already include the study's serving boundary, so PUE is not
+// applied again. Carbon and water translate that energy to the selected grid.
+function estimateProfile(profile, usesPerDay, gridG) {
+  const convert = (wh) => ({
+    energyWh: wh,
+    co2G: (wh / 1000) * gridG,
+    waterMl: (wh / 1000) * totalWue() * 1000,
+  });
+  const perUse = {
+    low: convert(profile.energyWh.low),
+    typical: convert(profile.energyWh.typical),
+    high: convert(profile.energyWh.high),
+  };
+  const scale = (period) => ({
+    low: {
+      energyWh: perUse.low.energyWh * period,
+      co2G: perUse.low.co2G * period,
+      waterMl: perUse.low.waterMl * period,
+    },
+    typical: {
+      energyWh: perUse.typical.energyWh * period,
+      co2G: perUse.typical.co2G * period,
+      waterMl: perUse.typical.waterMl * period,
+    },
+    high: {
+      energyWh: perUse.high.energyWh * period,
+      co2G: perUse.high.co2G * period,
+      waterMl: perUse.high.waterMl * period,
+    },
+  });
+  return {
+    profile,
+    perUse,
+    daily: scale(usesPerDay),
+    monthly: scale(usesPerDay * 30),
+    yearly: scale(usesPerDay * 365),
+  };
+}
 
 function compute(model, promptTok, outTok, queriesPerDay, gridG, pue) {
   const jIn = promptTok * model.jPerInTok;
