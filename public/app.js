@@ -485,7 +485,7 @@ function renderCompareTab() {
 const SOURCE_CATS = [
   { id: 'peer', label: 'Peer-reviewed papers (most trusted)', color: '#5b8ff9', desc: 'Journal or top-conference peer review; figures carry the strongest weight.' },
   { id: 'institution', label: 'Institutional & government reports', color: '#84a98c', desc: 'IEA, UN, EPA, government agencies and policy institutes.' },
-  { id: 'preprint', label: 'Recent research preprints (2026)', color: '#7c5cd6', desc: 'arXiv preprints / workshop papers; rigorous methods, not yet journal-reviewed.' },
+  { id: 'preprint', label: 'Recent research preprints', color: '#7c5cd6', desc: 'arXiv preprints / workshop papers; rigorous methods, not yet journal-reviewed.' },
   { id: 'journalism', label: 'Journalism, opinion & fact-checks', color: '#f6bd60', desc: 'News articles, expert commentary and independent fact-checks.' },
   { id: 'vendor', label: 'Vendor & company sources', color: '#adb5bd', desc: 'Pricing pages, company blogs and self-reported claims; treat as promotional.' },
 ];
