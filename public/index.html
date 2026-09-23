@@ -16,6 +16,7 @@
       --red: #f28482;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     body {
       background:
         radial-gradient(circle at 15% -10%, rgba(91, 143, 249, 0.10), transparent 34rem),
@@ -331,6 +332,13 @@
       .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
       .tab-btn { padding: 9px 6px; font-size: 13px; border-radius: 7px; }
       .card { padding: 16px; }
+      #toolTable thead { display: none; }
+      #toolTable, #toolTable tbody, #toolTable tr { display: block; width: 100%; }
+      #toolTable tr { padding: 10px 0; border-bottom: 1px solid var(--border); }
+      #toolTable tr:last-child { border-bottom: 0; }
+      #toolTable td { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; width: 100%; padding: 5px 0; border: 0; }
+      #toolTable td::before { content: attr(data-label); color: var(--muted); font-size: 13px; font-weight: 600; }
+      #toolTable .pill { white-space: normal; }
     }
   </style>
 </head>
@@ -343,16 +351,16 @@
       </div>
     </header>
 
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="tab-estimator">Calculator</button>
-      <button class="tab-btn" data-tab="tab-advanced">Advanced</button>
-      <button class="tab-btn" data-tab="tab-examples">Examples</button>
-      <button class="tab-btn" data-tab="tab-sustainable">Smart use</button>
-      <button class="tab-btn" data-tab="tab-outlook">Big picture</button>
-      <button class="tab-btn" data-tab="tab-sources">Sources</button>
+    <nav class="tabs" role="tablist" aria-label="Calculator sections">
+      <button class="tab-btn active" id="nav-estimator" role="tab" aria-selected="true" aria-controls="tab-estimator" data-tab="tab-estimator">Calculator</button>
+      <button class="tab-btn" id="nav-advanced" role="tab" aria-selected="false" aria-controls="tab-advanced" tabindex="-1" data-tab="tab-advanced">Advanced</button>
+      <button class="tab-btn" id="nav-examples" role="tab" aria-selected="false" aria-controls="tab-examples" tabindex="-1" data-tab="tab-examples">Examples</button>
+      <button class="tab-btn" id="nav-sustainable" role="tab" aria-selected="false" aria-controls="tab-sustainable" tabindex="-1" data-tab="tab-sustainable">Smart use</button>
+      <button class="tab-btn" id="nav-outlook" role="tab" aria-selected="false" aria-controls="tab-outlook" tabindex="-1" data-tab="tab-outlook">Big picture</button>
+      <button class="tab-btn" id="nav-sources" role="tab" aria-selected="false" aria-controls="tab-sources" tabindex="-1" data-tab="tab-sources">Sources</button>
     </nav>
 
-    <section class="tab active" id="tab-estimator">
+    <section class="tab active" id="tab-estimator" role="tabpanel" aria-labelledby="nav-estimator" aria-hidden="false">
       <div class="estimate-intro">
         <h2>A useful estimate in three choices</h2>
         <p>Choose the activity, how often you use it and the electricity grid. Results are research-based ranges—not a meter reading from an AI provider.</p>
@@ -407,7 +415,7 @@
       </div>
     </section>
 
-    <section class="tab" id="tab-examples">
+    <section class="tab" id="tab-examples" role="tabpanel" aria-labelledby="nav-examples" aria-hidden="true">
       <div class="card">
         <h2>Illustrative AI-use scenarios</h2>
         <p class="hint" style="margin-bottom:16px;">Compare published task scenarios on a log scale. Choose an axis and grid, then hover a bubble for details. These are estimates, not provider telemetry.</p>
@@ -455,7 +463,7 @@
       </div>
     </section>
 
-    <section class="tab" id="tab-sustainable">
+    <section class="tab" id="tab-sustainable" role="tabpanel" aria-labelledby="nav-sustainable" aria-hidden="true">
       <div class="estimate-intro">
         <h2>Use the right tool</h2>
         <p>AI is useful for some jobs; simpler tools are better for others. Start with what you need to accomplish.</p>
@@ -465,6 +473,7 @@
         <h2>Right tool for the task</h2>
         <p class="hint" style="margin-bottom:12px;">Match the tool to the job. A simple search, calculator or local tool is often enough; use AI when it adds real value. Resource use: 0–3 dots (near-zero to high).</p>
         <div style="overflow-x:auto;"><table id="toolTable">
+          <caption class="sr-only">Recommended tools for common tasks and their relative resource use</caption>
           <thead><tr><th>Task</th><th>Best tool</th><th>Resource use</th><th>Why</th></tr></thead>
           <tbody id="toolBody"></tbody>
         </table></div>
@@ -492,7 +501,7 @@
       </div>
     </section>
 
-    <section class="tab" id="tab-advanced">
+    <section class="tab" id="tab-advanced" role="tabpanel" aria-labelledby="nav-advanced" aria-hidden="true">
       <div class="card">
         <h2>Advanced calculator</h2>
         <p class="hint" style="margin-bottom:16px;">Explore a transparent scenario model. These provider-labelled coefficients are assumptions informed by open-model benchmarks, not measurements from proprietary services.</p>
@@ -534,7 +543,7 @@
             <input type="range" id="queriesSlider" min="1" max="500" step="1" value="30" />
           </div>
           <div class="control">
-            <label id="gridLabel">Grid CO2 intensity</label>
+            <label for="gridSelect" id="gridLabel">Grid CO2 intensity</label>
             <select id="gridSelect"></select>
             <div class="hint" id="gridHint"></div>
           </div>
@@ -597,7 +606,7 @@
       </div>
     </section>
 
-    <section class="tab" id="tab-outlook">
+    <section class="tab" id="tab-outlook" role="tabpanel" aria-labelledby="nav-outlook" aria-hidden="true">
       <div class="card">
         <h2>Synthesis — where it's all heading</h2>
         <div class="synthesis-grid" id="synthesisCards"></div>
@@ -637,7 +646,7 @@
       </div>
     </section>
 
-    <section class="tab" id="tab-sources">
+    <section class="tab" id="tab-sources" role="tabpanel" aria-labelledby="nav-sources" aria-hidden="true">
       <div class="card">
         <h2>How estimates work</h2>
         <div class="grid3">
@@ -659,10 +668,10 @@
     </footer>
   </div>
 
-  <script src="data.js"></script>
-  <script src="examples.js"></script>
-  <script src="model.js"></script>
-  <script src="format.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20"></script>
+  <script src="examples.js?v=20"></script>
+  <script src="model.js?v=20"></script>
+  <script src="format.js?v=20"></script>
+  <script src="app.js?v=20"></script>
 </body>
 </html>

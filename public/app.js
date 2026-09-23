@@ -524,10 +524,10 @@ function renderRightToolForTask() {
     .map((t) => {
       const dots = [0, 1, 2].map((i) => `<i class="dot ${i < t.cost ? 'on' : ''}"></i>`).join('');
       return `<tr>
-        <td><strong>${t.task}</strong></td>
-        <td><span class="pill">${t.best}</span></td>
-        <td><span class="cost-dots" title="${costLabels[t.cost]} resource use">${dots}</span><span class="cost-lbl">${costLabels[t.cost]}</span></td>
-        <td class="why">${t.why}</td>
+        <td data-label="Task"><strong>${t.task}</strong></td>
+        <td data-label="Best tool"><span class="pill">${t.best}</span></td>
+        <td data-label="Resource use"><span class="cost-dots" title="${costLabels[t.cost]} resource use">${dots}</span><span class="cost-lbl">${costLabels[t.cost]}</span></td>
+        <td data-label="Why" class="why">${t.why}</td>
       </tr>`;
     })
     .join('');
@@ -923,13 +923,33 @@ function bindControls() {
 }
 
 function bindTabs() {
+  const buttons = [...document.querySelectorAll('.tab-btn')];
   const activate = (tabId) => {
-    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tabId));
-    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.id === tabId));
+    buttons.forEach((button) => {
+      const selected = button.dataset.tab === tabId;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-selected', String(selected));
+      button.tabIndex = selected ? 0 : -1;
+    });
+    document.querySelectorAll('.tab').forEach((panel) => {
+      const selected = panel.id === tabId;
+      panel.classList.toggle('active', selected);
+      panel.setAttribute('aria-hidden', String(!selected));
+    });
     window.scrollTo({ top: 0 });
   };
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  buttons.forEach((btn, index) => {
     btn.addEventListener('click', () => activate(btn.dataset.tab));
+    btn.addEventListener('keydown', (e) => {
+      const offsets = { ArrowLeft: -1, ArrowRight: 1 };
+      let next = offsets[e.key] == null ? null : (index + offsets[e.key] + buttons.length) % buttons.length;
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = buttons.length - 1;
+      if (next == null) return;
+      e.preventDefault();
+      buttons[next].focus();
+      activate(buttons[next].dataset.tab);
+    });
   });
   document.querySelectorAll('[data-goto]').forEach((el) => {
     el.addEventListener('click', (e) => {
