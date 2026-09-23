@@ -117,7 +117,7 @@ function computeQueryType(model, qt, queriesPerDay, gridG, pue, options = {}) {
       perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec: null, jIn: 0, jOut: 0 },
       energyWh: scale((n) => wh * n),
       co2G: scale((n) => gCO2e * n),
-      cost: scale((n) => costUsd * n),
+      cost: scale((n) => costUsd == null ? null : costUsd * n),
       waterMl: scale((n) => waterMl * n),
       gpuSecTotal: scale(() => null),
     };

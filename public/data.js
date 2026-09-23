@@ -766,30 +766,6 @@ const DATA = {
     { value: '80-90%', label: 'share of AI energy spent on inference, not training (UNU-INWEH)', source: 'unricAi' },
   ],
 
-  headlineRefs: [
-    { label: 'Google search (de Vries 2023)', value: 0.3, unit: 'Wh', source: 'devries' },
-    { label: 'ChatGPT query (Joule 2026, median)', value: 0.31, unit: 'Wh', source: 'jouleInference' },    { label: 'ChatGPT query (OpenAI/Altman, 2025)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
-    { label: 'ChatGPT avg CO2e (Cloud Carbon Footprint 2024)', value: 8.3, unit: 'g', source: 'cloudCarbon' },
-    { label: 'GPT-3.5 query CO2e (Cloud Carbon Footprint 2024)', value: 4, unit: 'g', source: 'cloudCarbon' },
-    { label: 'GPT-4 query CO2e (Cloud Carbon Footprint 2024)', value: 15, unit: 'g', source: 'cloudCarbon' },
-    { label: 'ChatGPT water, per prompt (Li et al. 2023)', value: 15, unit: 'ml', source: 'thirsty' },
-    { label: '100-word AI prompt water (UC Riverside / EESI)', value: 519, unit: 'ml', source: 'eesiWater' },
-    { label: 'Data centre avg WUE (direct only)', value: 1.9, unit: 'L/kWh', source: 'eesiWater' },
-    { label: 'Composite water intensity (direct + indirect)', value: 5.3, unit: 'L/kWh', source: 'cellReports' },
-    { label: 'AI share of DC electricity, end-2024 (de Vries-Gao)', value: 20, unit: '%', source: 'cellReports' },
-    { label: 'AI power demand (2024 -> 2025, de Vries-Gao)', value: 23, unit: 'GW', source: 'cellReports' },
-    { label: 'AI carbon footprint 2025 (de Vries-Gao)', value: 79.7, unit: 'Mt CO2', source: 'cellReports' },
-    { label: 'AI water footprint 2025 (de Vries-Gao)', value: 764.6, unit: 'B L', source: 'cellReports' },
-    { label: 'US DC grid carbon intensity (LBNL 2024)', value: 0.46, unit: 't CO2/MWh', source: 'cellReports' },
-    { label: 'Chat query vs text classification (UNU-INWEH 2026)', value: 200, unit: 'x', source: 'unricAi' },
-    { label: 'AI image vs text classification (UNU-INWEH 2026)', value: 1450, unit: 'x', source: 'unricAi' },
-    { label: 'AI image water footprint (UNU-INWEH 2026)', value: 29, unit: 'ml', source: 'unricAi' },
-    { label: 'Indirect vs direct DC water, US (LBNL 2024 via WSJ)', value: 12, unit: 'x', source: 'wsjWater' },
-    { label: 'ChatGPT daily prompts (UNU-INWEH 2026)', value: 2.5, unit: 'B', source: 'unricAi' },
-    { label: 'Global DC electricity 2030 (IEA / UNU-INWEH)', value: 945, unit: 'TWh', source: 'unricAi' },
-    { label: 'Global DC electricity 2025 (UNU-INWEH)', value: 448, unit: 'TWh', source: 'unricAi' },
-  ],
-
   macro: {
     globalDcElectricity: [
       { year: 2024, tWh: 415, note: 'measured / IEA 2025' },

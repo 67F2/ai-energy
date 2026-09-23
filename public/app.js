@@ -419,60 +419,6 @@ function exampleEqText(ex, gridG, pue) {
   return `≈ ${bottlePct}% of a ${eq.waterBottleMl}&nbsp;ml bottle of water · ${phonePct}% of a phone charge · ${coffeePct}% of a cup of coffee`;
 }
 
-function renderCompareTab() {
-  const gridG = currentGrid().gCO2ePerKWh;
-  const pue = DATA.defaultPue;
-  const fmtCells = (wh, gCO2e, costUsd) => {
-    const e = wh == null ? '—' : `${fmtEnergyFixed(wh).v} ${fmtEnergyFixed(wh).u}`;
-    const c = gCO2e == null ? '—' : `${fmtCo2Fixed(gCO2e).v} ${fmtCo2Fixed(gCO2e).u}`;
-    const cost = costUsd == null ? '—' : fmtCostFixed(costUsd).v + fmtCostFixed(costUsd).u;
-    return `<td>${e}</td><td>${c}</td><td>${cost}</td>`;
-  };
-  const srcCell = (id) => {
-    const s = sourceById(id);
-    return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
-  };
-
-  const rows = [
-    `<tr><td>Google search</td>${fmtCells(0.3, 0.3 * gridG / 1000, null)}<td>~0.3 Wh per search (de Vries 2023), since disputed as an overestimate. Baseline for comparison.</td><td>${srcCell('devries')}</td></tr>`,
-    `<tr><td>ChatGPT query (current era)</td>${fmtCells(0.31, 0.31 * gridG / 1000, null)}<td>~0.31 Wh per query (median, Joule 2026 peer-reviewed; IQR 0.16-0.60). The widely-cited ~2.9 Wh figure (2023) is now considered an overestimate; Altman counter-claim ~0.34 Wh.</td><td>${srcCell('jouleInference')}</td></tr>`,
-    `<tr><td>Ecosia search</td>${fmtCells(null, 0.2, null)}<td>Ecosia's own operational estimate ~0.2 g CO2e/search; independent app-level tests (Greenspector, Bangor Univ.) put it ~0.055 g — ~69% lower than Google (~0.178 g). No official energy or cost figure; runs on renewables (~2x the energy its searches use).</td><td>${srcCell('ecosiaPerQuery')} · ${srcCell('ecosiaOwnCo2')} · ${srcCell('greenspector')} · ${srcCell('bangorSearch')}</td></tr>`,
-    `<tr><td>Ecosia AI (chat / overviews)</td><td colspan="4" class="nofig">No per-query figure published — Ecosia estimates AI adds ~5% to its footprint (~5.1 t on the ~102 t base); uses smaller, efficient models via a European provider; optional and switchable off.</td><td>${srcCell('ecosiaAi')} · ${srcCell('ecosiaAiFree')}</td></tr>`,
-    `<tr><td>AI image generation</td>${fmtCells(2.9, 2.9 * gridG / 1000, 0.04)}<td>~2.9 Wh/image (Power Hungry). Cost = GPT Image 1 medium tier.</td><td>${srcCell('powerHungry')} · ${srcCell('gptImagePrice')}</td></tr>`,
-    `<tr><td>AI video clip (~5-8 s)</td>${fmtCells(90, 90 * gridG / 1000, 1.0)}<td>~90 Wh/clip (WAN2.1, 81 frames). ~30x image generation. Cost = mid-range API estimate.</td><td>${srcCell('videoEnergy')} · ${srcCell('videoPrice')}</td></tr>`,
-  ].join('');
-  $('compareBody').innerHTML = rows;
-
-  const footnote = $('compareFoot');
-  if (footnote) {
-    footnote.innerHTML = '— in the Energy/Cost columns for Ecosia = no official per-query figure published. Ecosia\'s CO2e is its own operational estimate (~0.2 g/search); independent app-level tests (Greenspector, Bangor Univ.) put it at ~0.055 g/search.';
-  }
-
-  const ecosiaNotes = [
-    { text: 'Ecosia is a B-Corp search engine that funds tree planting from profits; it claims to produce about twice as much renewable energy as its searches use.', sources: ['ecosiaHome'] },
-    { text: 'Ecosia claims each search "removes 1 kg of CO2" through tree-planting profits (Regeneration Report).', sources: ['ecosiaRegen'] },
-    { text: 'AI Overviews + AI Chat launched December 2025; both optional and switchable off.', sources: ['ecosiaAi', 'ecosiaAiFree'] },
-    { text: 'Ecosia selects and tracks models with the AI Energy Score (Hugging Face) and Ecologits; it avoids video generation and uses smaller models, so its AI footprint is far below mainstream alternatives.', sources: ['ecosiaAi', 'ecosiaAiImproved'] },
-    { text: 'Ecosia publishes aggregate totals (~102 t CO2/yr) but no per-query energy or CO2 figure for search or AI; fact-checkers call for per-query disclosure.', sources: ['ecosiaFactCheck'] },
-  ];
-  $('ecosiaNotes').innerHTML = noteListHtml(ecosiaNotes);
-
-  const refs = [
-    { label: 'Google search (de Vries 2023)', value: 0.3, unit: 'Wh', source: 'devries' },
-    { label: 'ChatGPT query (Joule 2026, median)', value: 0.31, unit: 'Wh', source: 'jouleInference' },
-    { label: 'ChatGPT query (IEA via SBS, 2024 — historical)', value: 2.9, unit: 'Wh', source: 'sbsNews' },
-    { label: 'ChatGPT query (OpenAI/Altman, 2025)', value: 0.34, unit: 'Wh', source: 'sbsNews' },
-    { label: 'AI image vs text classification (UNU-INWEH 2026)', value: 1450, unit: 'x', source: 'unricAi' },
-    { label: 'AI image water footprint (UNU-INWEH 2026)', value: 29, unit: 'ml', source: 'unricAi' },
-  ];
-  $('compareHeadlineBody').innerHTML = refs
-    .map((h) => {
-      const s = sourceById(h.source);
-      return `<tr><td>${h.label}</td><td>${h.value} ${h.unit}</td><td><a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a></td></tr>`;
-    })
-    .join('');
-}
-
 const SOURCE_CATS = [
   { id: 'peer', label: 'Peer-reviewed papers (most trusted)', color: '#5b8ff9', desc: 'Journal or top-conference peer review; figures carry the strongest weight.' },
   { id: 'institution', label: 'Institutional & government reports', color: '#84a98c', desc: 'IEA, UN, EPA, government agencies and policy institutes.' },
@@ -513,7 +459,7 @@ function renderMethodology() {
   const gridG = currentGrid().gCO2ePerKWh;
 
   const html = `
-    <p class="hint" style="margin-bottom:12px;">Every figure on this page is derived from the same four formulas, each traced to its source. Technical controls are in the <a href="#" data-goto="tab-advanced">advanced calculator</a>.</p>
+    <p class="hint" style="margin-bottom:12px;">Token-based scenarios use the four formulas below; fixed media examples retain their published energy estimates. Technical controls are in the <a href="#" data-goto="tab-advanced">advanced calculator</a>.</p>
     <div class="method-grid">
       <div class="method">
         <h3>⚡ Energy</h3>
@@ -860,25 +806,25 @@ function render() {
 
   const e = fmtEnergyFixed(pq.wh);
   const c = fmtCo2Fixed(pq.gCO2e);
-  const cost = fmtCostFixed(pq.costUsd);
+  const cost = pq.costUsd == null ? null : fmtCostFixed(pq.costUsd);
   const w = fmtWaterFixed(pq.waterMl);
   const g = pq.gpuSec == null ? null : fmtGpu(pq.gpuSec);
 
   bindText('vEnergy', `${e.v} ${e.u}`);
   bindText('vCo2', `${c.v} ${c.u}`);
-  bindText('vCost', `${cost.v}${cost.u}`);
+  bindText('vCost', cost ? `${cost.v}${cost.u}` : '—');
   bindText('vWater', `${w.v} ${w.u}`);
   bindText('vGpu', g ? `${g.v} ${g.u}` : '—');
 
   const em = fmtEnergy(r.energyWh.monthly);
   const cm = fmtCo2(r.co2G.monthly);
   const wm = fmtWater(r.waterMl.monthly);
-  const cst = fmtCostFixed(r.cost.monthly);
+  const cst = r.cost.monthly == null ? null : fmtCostFixed(r.cost.monthly);
   const gm = r.gpuSecTotal.monthly == null ? null : fmtGpu(r.gpuSecTotal.monthly);
   bindText('vMonthEnergy', `${em.v} ${em.u}`);
   bindText('vMonthCo2', `${cm.v} ${cm.u}`);
   bindText('vMonthWater', `${wm.v} ${wm.u}`);
-  bindText('vMonthCost', `${cst.v}${cst.u}`);
+  bindText('vMonthCost', cst ? `${cst.v}${cst.u}` : '—');
   bindText('vMonthGpu', gm ? `${gm.v} ${gm.u}` : '—');
 
   $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}).`;
@@ -918,7 +864,6 @@ function onGridChange(event) {
   renderStaticExamples();
   buildExamplesScatter($('scatterMetric').value);
   renderMethodology();
-  renderCompareTab();
 }
 
 function onQueryTypeChange() {
@@ -949,7 +894,7 @@ function syncFixedTypeUI(qt) {
 }
 
 function bindControls() {
-  const ids = ['modelSelect', 'queryType', 'promptSlider', 'outSlider', 'servingSelect', 'cacheSlider', 'queriesSlider', 'pueSlider', 'wueSlider'];
+  const ids = ['promptSlider', 'outSlider', 'servingSelect', 'cacheSlider', 'queriesSlider', 'pueSlider', 'wueSlider'];
   ids.forEach((id) => $(id).addEventListener('input', render));
   $('queryType').addEventListener('change', () => {
     onQueryTypeChange();
@@ -1027,5 +972,4 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAuContext();
   renderStaticExamples();
   buildExamplesScatter();
-  renderCompareTab();
 });
