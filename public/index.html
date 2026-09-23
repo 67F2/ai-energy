@@ -341,8 +341,9 @@
     </header>
 
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="tab-estimator">Estimate</button>
+      <button class="tab-btn active" data-tab="tab-estimator">Calculator</button>
       <button class="tab-btn" data-tab="tab-examples">Examples</button>
+      <button class="tab-btn" data-tab="tab-sustainable">Sustainable</button>
       <button class="tab-btn" data-tab="tab-advanced">Advanced</button>
       <button class="tab-btn" data-tab="tab-outlook">Big picture</button>
       <button class="tab-btn" data-tab="tab-sources">Sources</button>
@@ -399,7 +400,7 @@
           <summary>Why is this a range?</summary>
           <p id="mainAssumptions"></p>
         </details>
-        <a href="#" class="advanced-link" data-goto="tab-advanced">Adjust technical assumptions</a>
+        <a href="#" class="advanced-link" data-goto="tab-advanced">Advanced</a>
       </div>
     </section>
 
@@ -487,6 +488,54 @@
             <tbody id="compareHeadlineBody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-sustainable">
+      <div class="estimate-intro">
+        <h2>Use AI with purpose</h2>
+        <p>Choose the lightest tool that does the job. The biggest practical wins are fewer retries, shorter answers and using rich media only when it adds real value.</p>
+      </div>
+
+      <div class="card">
+        <h2>A quick guide</h2>
+        <div class="method-grid">
+          <div class="method">
+            <h3>Find a fact or website</h3>
+            <p>Start with ordinary search. Use AI when you need an explanation, comparison or synthesis—not just a link.</p>
+          </div>
+          <div class="method">
+            <h3>Draft, summarise or learn</h3>
+            <p>Give the context, desired format and length in one prompt. Ask for a brief answer when that is enough.</p>
+          </div>
+          <div class="method">
+            <h3>Create an image or video</h3>
+            <p>Use text or an existing asset when it works. Generate media when the visual itself is useful, because it is much more energy-intensive than simple text.</p>
+          </div>
+          <div class="method">
+            <h3>Keep the useful result</h3>
+            <p>Check important claims, then save and edit a good answer instead of repeatedly regenerating it.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ecosia: search and optional AI</h2>
+        <p>For common lookups, Ecosia combines regular web search with optional AI Overviews and AI Chat. You can switch all AI features off in Settings, then use AI only when it is genuinely helpful.</p>
+        <p class="hint" style="margin-top:10px;">Ecosia says it uses smaller, more efficient models, avoids video generation and produces more renewable electricity than its AI uses. These are company-reported claims, not independent per-query measurements.</p>
+        <p class="hint" style="margin-top:10px;">
+          <a href="https://blog.ecosia.org/ai-free-search/" target="_blank" rel="noopener">AI-free search</a> ·
+          <a href="https://blog.ecosia.org/ecosia-ai/" target="_blank" rel="noopener">How Ecosia approaches AI</a>
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Why these tips</h2>
+        <p class="hint">Peer-reviewed measurements link longer outputs and response times with higher inference energy. The IEA also finds that reasoning, image, video and agentic tasks can use hundreds or thousands of times more energy than simple text.</p>
+        <p class="hint" style="margin-top:10px;">
+          <a href="https://doi.org/10.18653/v1/2025.naacl-long.632" target="_blank" rel="noopener">Poddar et al., NAACL 2025</a> ·
+          <a href="https://www.iea.org/reports/key-questions-on-energy-and-ai" target="_blank" rel="noopener">IEA, 2026</a>
+        </p>
       </div>
     </section>
 
