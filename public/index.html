@@ -324,10 +324,8 @@
     .evidence-line { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
     .evidence-peer { color: #b7e4c7; border-color: #52796f; }
     .evidence-preprint { color: #f6bd60; border-color: #8a6d2f; }
-    details.assumptions { margin-top: 14px; }
-    details.assumptions summary { cursor: pointer; color: var(--accent); }
-    details.assumptions p { color: var(--muted); font-size: 15px; margin-top: 8px; }
-    .advanced-link { display: inline-block; margin-top: 18px; padding: 9px 14px; border: 1px solid var(--accent); border-radius: 8px; }
+    .assumptions-note { color: var(--muted); font-size: 15px; margin-top: 14px; }
+    .assumptions-note strong { color: var(--accent); }
     @media (max-width: 760px) {
       .simple-controls, .simple-results { grid-template-columns: 1fr; }
       .scatter-plot { overflow-x: auto; }
@@ -369,7 +367,7 @@
 
     <section class="tab active" id="tab-estimator" role="tabpanel" aria-labelledby="nav-estimator" aria-hidden="false">
       <div class="estimate-intro">
-        <p>Choose the activity, how often you use it and the electricity grid. Results are research-based ranges—not a meter reading from an AI provider.</p>
+        <p>Choose the activity, how often you use it and the location. Results are research-based ranges.</p>
       </div>
       <div class="card">
         <div class="simple-controls">
@@ -413,11 +411,7 @@
 
         <div class="estimate-summary" id="mainMonthlySummary"></div>
         <div class="evidence-line" id="mainEvidence"></div>
-        <details class="assumptions">
-          <summary>Why estimates vary</summary>
-          <p id="mainAssumptions"></p>
-        </details>
-        <a href="#" class="advanced-link" data-goto="tab-advanced">Advanced</a>
+        <p class="assumptions-note"><strong>Why estimates vary:</strong> <span id="mainAssumptions"></span></p>
       </div>
     </section>
 
@@ -510,7 +504,7 @@
     <section class="tab" id="tab-advanced" role="tabpanel" aria-labelledby="nav-advanced" aria-hidden="true">
       <div class="card">
         <h2>Advanced calculator</h2>
-        <p class="hint" style="margin-bottom:16px;">Explore a transparent scenario model. These provider-labelled coefficients are assumptions informed by open-model benchmarks, not measurements from proprietary services.</p>
+        <p class="hint" style="margin-bottom:16px;">Explore a transparent scenario model. Prices are provider-specific; energy coefficients are research-informed assumptions, not provider measurements.</p>
         <div class="cols">
           <section id="calculator">
             <div class="subcard">
@@ -555,13 +549,13 @@
           </div>
           <div class="control">
             <label for="pueSlider" id="pueLabel">PUE</label>
-            <input type="range" id="pueSlider" min="1.00" max="2.00" step="0.01" value="1.35" />
+            <input type="range" id="pueSlider" min="1.00" max="2.00" step="0.01" value="1.20" />
           </div>
           <div class="control">
-            <label for="wueSlider" id="wueLabel">Combined water intensity: 5.3 L/kWh</label>
-            <input type="range" id="wueSlider" min="0" max="10" step="0.1" value="5.3" />
+            <label for="wueSlider" id="wueLabel">Electricity water intensity: 3.4 L/kWh</label>
+            <input type="range" id="wueSlider" min="0" max="10" step="0.1" value="3.4" />
           </div>
-          <p class="hint">These controls explore scenarios, not hidden provider telemetry. Serving efficiency represents the combined effect of hardware, precision, batching and software. Prompt caching reduces repeated prefill work in this simplified model; public API billing may treat cached tokens differently. PUE applies facility overhead only to token-based estimates. Water intensity combines direct cooling and electricity-related water.</p>
+          <p class="hint">These controls explore scenarios, not hidden provider telemetry. Serving efficiency combines hardware, precision, batching and software. Prompt caching reduces repeated prefill work in this simplified model; billing may differ. PUE changes token-based energy and separates IT from facility energy in water estimates.</p>
             </div>
         </section>
 

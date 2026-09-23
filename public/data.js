@@ -1,4 +1,4 @@
-const VERSION = 'v24';
+const VERSION = 'v25';
 
 const SOURCES = {
   wattgpu: {
@@ -568,7 +568,7 @@ for (const id of [
 }
 
 const DATA = {
-  defaultPue: 1.35,
+  defaultPue: 1.20,
   taskProfiles: [
     {
       id: 'short-text',
@@ -579,9 +579,11 @@ const DATA = {
       evidenceLabel: 'Peer-reviewed measurements',
       source: 'powerHungry',
       supportingSources: ['sustainableNlp', 'jouleInference'],
+      displaySources: ['powerHungry', 'jouleInference'],
+      pueIncluded: false,
       boundary: 'Operational inference energy; measured open models and tasks.',
       note: 'The low and typical values follow measured task-specific classification and text generation; the high value is the lower edge of the frontier-chat range.',
-      rangeNote: 'Short tasks can use very different models and amounts of computing. This range covers measured results from simple classification to short text generation.',
+      rangeNote: 'This comparison spans measured classification and short generation plus the lower edge of frontier chat; it is not one statistical range.',
     },
     {
       id: 'standard-chat',
@@ -592,6 +594,7 @@ const DATA = {
       evidenceLabel: 'Peer-reviewed estimate',
       source: 'jouleInference',
       supportingSources: ['mlEnergyBenchmark', 'energyOptimizations', 'mlEnergyDiagnostics', 'promptsToPower'],
+      pueIncluded: true,
       boundary: 'Operational inference including production-serving assumptions and PUE.',
       note: 'The range is the published interquartile range for frontier-scale inference, not provider telemetry.',
       rangeNote: 'AI services use different models and hardware. This range covers the middle half of the results measured in the study.',
@@ -605,6 +608,7 @@ const DATA = {
       evidenceLabel: 'Peer-reviewed estimate',
       source: 'jouleInference',
       supportingSources: ['cotCompression', 'aiEnergyScore', 'mlEnergyDiagnostics'],
+      pueIncluded: true,
       boundary: 'Operational inference including production-serving assumptions and PUE.',
       note: 'The range is the published interquartile range for the study’s test-time-scaling scenario.',
       rangeNote: 'Longer reasoning uses more computing, and models may reason for different lengths. This range covers the middle half of the study’s results.',
@@ -618,6 +622,7 @@ const DATA = {
       evidenceLabel: 'Peer-reviewed measurements',
       source: 'powerHungry',
       supportingSources: ['mlEnergyDiagnostics'],
+      pueIncluded: false,
       boundary: 'Operational inference measured across open text-to-image models.',
       note: 'The study found a very wide spread across image-generation models; 0.34 Wh is derived from its approximate lowest-model result, 2.9 Wh is the reported mean and 11.49 Wh the reported high.',
       rangeNote: 'Image models vary widely in size and settings. This range runs from the study’s lowest result to its highest.',
@@ -630,6 +635,7 @@ const DATA = {
       evidence: 'peer',
       evidenceLabel: 'Peer-reviewed measurements',
       source: 'asrCompare',
+      pueIncluded: { low: false, typical: true, high: false },
       boundary: 'Operational inference; range spans measured/estimated cloud and local systems.',
       note: 'Derived from the study’s totals for approximately 22.2 hours of audio; deployment choice changes the result.',
       rangeNote: 'Cloud and local speech-to-text systems use different hardware. This range covers the systems compared in the study.',
@@ -643,6 +649,7 @@ const DATA = {
       evidenceLabel: 'Emerging research',
       source: 'videoEnergy',
       supportingSources: ['mlEnergyDiagnostics'],
+      pueIncluded: false,
       boundary: 'Operational GPU measurement for two WAN2.1 configurations.',
       note: 'Evidence is an unreviewed workshop preprint. The low/typical case is the 1.3B model; the high case is the 14B model.',
       rangeNote: 'Video generation changes greatly with model size and settings. The lower figure uses the smaller model and the upper figure uses the larger one; this research has not yet been peer reviewed.',
@@ -754,9 +761,9 @@ const DATA = {
     { id: 'detailed', label: 'Detailed / write code', promptTok: 500, outTok: 1000 },
     { id: 'long', label: 'Long context (RAG / document)', promptTok: 8000, outTok: 800 },
     { id: 'vision', label: 'Image / vision input', promptTok: 1500, outTok: 150 },
-    { id: 'transcribe', label: '1-hour meeting transcription', fixedWh: 16, fixedCostUsd: 0.36, sources: ['asrCompare', 'openaiPrice', 'cellReports'] },
-    { id: 'imagegen', label: 'AI image generation', fixedWh: 2.9, fixedCostUsd: 0.04, sources: ['powerHungry', 'gptImagePrice'] },
-    { id: 'videoclip', label: 'Short AI video clip (~5-8 s)', fixedWh: 90, fixedCostUsd: 1.0, sources: ['videoEnergy', 'videoPrice'] },
+    { id: 'transcribe', label: '1-hour meeting transcription', fixedWh: 16, fixedCostUsd: 0.36, pueIncluded: true, sources: ['asrCompare', 'openaiPrice', 'cellReports'] },
+    { id: 'imagegen', label: 'AI image generation', fixedWh: 2.9, fixedCostUsd: 0.04, pueIncluded: false, sources: ['powerHungry', 'gptImagePrice'] },
+    { id: 'videoclip', label: 'Short AI video clip (~5-8 s)', fixedWh: 90, fixedCostUsd: 1.0, pueIncluded: false, sources: ['videoEnergy', 'videoPrice'] },
   ],
 
   referenceCards: [
@@ -788,7 +795,7 @@ const DATA = {
     ],
     waterBenchmark2030TrillionL: 9.3,
     macroWaterNotes: [
-      { text: 'Derived global data-centre water = electricity (TWh) x composite water intensity (~5.3 L/kWh, direct + indirect) -> ~2.2 trillion L (2024) rising to ~5.0 trillion L (2030). This is a transparent lower-bound scenario, not a measured global total.', sources: ['cellReports', 'eesiWater', 'npjWater', 'sustainableWater'] },
+      { text: 'Derived global data-centre water uses facility electricity with 1.9 L/kWh direct water applied to IT energy (PUE 1.2) plus 3.4 L/kWh electricity-related water: ~2.1 trillion L (2024), rising to ~4.7 trillion L (2030). This is a scenario, not a measured global total.', sources: ['cellReports', 'eesiWater', 'npjWater', 'sustainableWater'] },
       { text: 'UNU-INWEH projects a much larger ~9.3 trillion L by 2030 once AI-specific footprint growth is included; the derived line is therefore a conservative lower bound.', sources: ['unricAi'] },
       { text: 'AI water footprint 2025: 312.5-764.6B L, roughly the entire global annual bottled-water market (Patterns 2026).', sources: ['cellReports'] },
       { text: 'Indirect (power-plant) water dominates and is under-reported: ~3.4 L/kWh actual vs ~1.04 L/kWh IEA-implied; only Meta reports it (Patterns 2026 / WSJ).', sources: ['cellReports', 'wsjWater'] },

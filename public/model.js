@@ -5,8 +5,14 @@
 const modelById = (id) => DATA.models.find((m) => m.id === id);
 const sourceById = (id) => SOURCES[id];
 
-// Combined water-use efficiency: direct cooling + indirect (electricity-embedded) water.
-const totalWue = () => DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPerKWh || 0);
+// Direct WUE uses IT energy; electricity-related water uses facility energy.
+function waterUseMl(itWh, facilityWh, directLPerKWh = DATA.waterModel.wueLPerKWh, indirectLPerKWh = DATA.waterModel.indirectLPerKWh) {
+  return itWh * directLPerKWh + facilityWh * indirectLPerKWh;
+}
+
+function profileIncludesPue(profile, band) {
+  return typeof profile.pueIncluded === 'object' ? profile.pueIncluded[band] : profile.pueIncluded;
+}
 
 // The grid intensity the dashboard currently computes with.
 // NOTE: onGridChange() mutates DATA.gridIntensity directly; access is
@@ -14,19 +20,24 @@ const totalWue = () => DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPe
 const currentGrid = () => DATA.gridIntensity;
 const profileById = (id) => DATA.taskProfiles.find((p) => p.id === id);
 
-// Main-page task profiles are complete measured/modelled scenarios. Their
-// energy ranges already include the study's serving boundary, so PUE is not
-// applied again. Carbon and water translate that energy to the selected grid.
-function estimateProfile(profile, usesPerDay, gridG) {
-  const convert = (wh) => ({
-    energyWh: wh,
-    co2G: (wh / 1000) * gridG,
-    waterMl: (wh / 1000) * totalWue() * 1000,
-  });
+// Main-page energy and carbon preserve each study's published boundary. Water
+// uses pueIncluded metadata to separate IT and facility energy without changing
+// the displayed study value.
+function estimateProfile(profile, usesPerDay, gridG, pue = DATA.defaultPue) {
+  const convert = (wh, band) => {
+    const includesPue = profileIncludesPue(profile, band);
+    const itWh = includesPue ? wh / pue : wh;
+    const facilityWh = includesPue ? wh : wh * pue;
+    return {
+      energyWh: wh,
+      co2G: (wh / 1000) * gridG,
+      waterMl: waterUseMl(itWh, facilityWh),
+    };
+  };
   const perUse = {
-    low: convert(profile.energyWh.low),
-    typical: convert(profile.energyWh.typical),
-    high: convert(profile.energyWh.high),
+    low: convert(profile.energyWh.low, 'low'),
+    typical: convert(profile.energyWh.typical, 'typical'),
+    high: convert(profile.energyWh.high, 'high'),
   };
   const scale = (period) => ({
     low: {
@@ -67,10 +78,9 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue, options = 
   const gCO2e = kWh * gridG;
   const costUsd =
     (promptTok / 1e6) * model.priceInUsdPer1M + (outTok / 1e6) * model.priceOutUsdPer1M;
-  const wue = options.wueLPerKWh == null ? totalWue() : options.wueLPerKWh;
-  // Primary water estimate uses source WUE only. Published prompt-level
-  // estimates use different system boundaries and remain reference figures.
-  const waterMl = kWh * wue * 1000;
+  const directWue = DATA.waterModel.wueLPerKWh;
+  const indirectWue = options.indirectLPerKWh == null ? DATA.waterModel.indirectLPerKWh : options.indirectLPerKWh;
+  const waterMl = waterUseMl(itJoules / 3600, wh, directWue, indirectWue);
   // Accelerator-equivalent runtime is based on IT energy only. PUE represents
   // facility overhead (cooling, power distribution), not extra GPU runtime.
   const gpuSec = itJoules / model.gpuPowerW;
@@ -83,7 +93,7 @@ function compute(model, promptTok, outTok, queriesPerDay, gridG, pue, options = 
   });
 
   return {
-    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut, itJoules, facilityJoules, effectivePromptTok, cacheHitRate, servingFactor, wue },
+    perQuery: { wh, gCO2e, costUsd, waterMl, gpuSec, jIn, jOut, itJoules, facilityJoules, effectivePromptTok, cacheHitRate, servingFactor, directWue, indirectWue },
     energyWh: scale((n) => wh * n),
     co2G: scale((n) => gCO2e * n),
     cost: scale((n) => costUsd * n),
@@ -100,8 +110,11 @@ function computeQueryType(model, qt, queriesPerDay, gridG, pue, options = {}) {
     const wh = qt.fixedWh;
     const gCO2e = qt.fixedCo2G != null ? qt.fixedCo2G : wh * (gridG / 1000);
     const baseline = qt.fixedBaselineMl != null ? qt.fixedBaselineMl : 0;
-    const wue = options.wueLPerKWh == null ? totalWue() : options.wueLPerKWh;
-    const waterMl = qt.fixedWaterMl != null ? qt.fixedWaterMl : baseline + (wh / 1000) * wue * 1000;
+    const directWue = DATA.waterModel.wueLPerKWh;
+    const indirectWue = options.indirectLPerKWh == null ? DATA.waterModel.indirectLPerKWh : options.indirectLPerKWh;
+    const itWh = qt.pueIncluded ? wh / pue : wh;
+    const facilityWh = qt.pueIncluded ? wh : wh * pue;
+    const waterMl = qt.fixedWaterMl != null ? qt.fixedWaterMl : baseline + waterUseMl(itWh, facilityWh, directWue, indirectWue);
     const costUsd = qt.fixedCostUsd != null ? qt.fixedCostUsd : null;
     const scale = (f) => ({
       perQuery: f(1),
@@ -128,8 +141,9 @@ function exampleResult(ex, gridG, pue) {
     const wh = ex.fixedWh;
     const gCO2e = ex.fixedCo2G != null ? ex.fixedCo2G : wh * (gridG / 1000);
     const baseline = ex.fixedBaselineMl != null ? ex.fixedBaselineMl : 0;
-    const wue = totalWue();
-    const waterMl = ex.fixedWaterMl != null ? ex.fixedWaterMl : baseline + (wh / 1000) * wue * 1000;
+    const itWh = ex.pueIncluded ? wh / pue : wh;
+    const facilityWh = ex.pueIncluded ? wh : wh * pue;
+    const waterMl = ex.fixedWaterMl != null ? ex.fixedWaterMl : baseline + waterUseMl(itWh, facilityWh);
     return {
       perQuery: { wh, gCO2e, waterMl, costUsd: ex.fixedCostUsd != null ? ex.fixedCostUsd : null, gpuSec: 0, jIn: 0, jOut: 0 },
     };

@@ -467,7 +467,6 @@ function renderSources() {
 
 function renderMethodology() {
   const wm = DATA.waterModel;
-  const wueTotal = totalWue();
   const pue = DATA.defaultPue;
   const gridG = currentGrid().gCO2ePerKWh;
 
@@ -477,7 +476,7 @@ function renderMethodology() {
       <div class="method">
         <h3>⚡ Energy</h3>
         <p><code>Wh = (promptTok × J/input + outTok × J/output) × PUE ÷ 3600</code></p>
-        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks and checked against the peer-reviewed range ${sourceRef('jouleInference')}; they are not provider telemetry. PUE overhead ${pue}× is an adjustable assumption.</p>
+        <p class="hint">Per-token joules are research-informed scenario assumptions, not provider telemetry. The default PUE ${pue}× is a central scenario within the study's 1.05–1.40 range ${sourceRef('jouleInference')}.</p>
       </div>
       <div class="method">
         <h3>🌡️ CO2</h3>
@@ -486,8 +485,8 @@ function renderMethodology() {
       </div>
       <div class="method">
         <h3>💧 Water</h3>
-        <p><code>ml = kWh × ${wueTotal} L/kWh × 1000</code></p>
-        <p class="hint">Primary estimate uses direct WUE ${wm.wueLPerKWh} L/kWh ${sourceRef('eesiWater')} plus ${wm.indirectLPerKWh} L/kWh indirect electricity water ${sourceRef('cellReports')}. Regional limits are described in ${sourceRef('npjWater')}. Published prompt-level figures such as 519 ml are shown separately because their boundaries differ.</p>
+        <p><code>ml = (IT kWh × ${wm.wueLPerKWh} + facility kWh × ${wm.indirectLPerKWh}) × 1000</code></p>
+        <p class="hint">Direct cooling is based on IT energy ${sourceRef('eesiWater')}; electricity-related water is based on facility energy ${sourceRef('cellReports')}. Both vary substantially by location ${sourceRef('npjWater')}.</p>
       </div>
       <div class="method">
         <h3>💵 Cost</h3>
@@ -667,14 +666,12 @@ function renderStaticExamples() {
     </table></div>
   </div>`;
 
-  const wueTotal = totalWue();
-
   const refCards = (DATA.referenceCards || [])
     .map((c) => {
       return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label} ${sourceRef(c.source)}</div></div>`;
     })
     .join('');
-  const wueCard = `<div class="metric"><div class="v" id="wueValue">${wueTotal} L/kWh</div><div class="u">composite water-intensity scenario${wueSourceLink('cellReports')}</div></div>`;
+  const wueCard = `<div class="metric"><div class="v" id="wueValue">${wm.wueLPerKWh} + ${wm.indirectLPerKWh} L/kWh</div><div class="u">direct (IT) + electricity-related (facility) water intensities${wueSourceLink('cellReports')}</div></div>`;
   $('referenceCards').innerHTML = refCards + wueCard;
   $('glossary').innerHTML = '<strong>Abbreviations:</strong> CO2e = CO2-equivalent greenhouse gases · WUE = water used per unit of electricity (L/kWh) · Mt = million tonnes · B L = billion litres · Wh/g/ml/USD = per-query units.';
 
@@ -753,7 +750,8 @@ function renderMainEstimate() {
   bindText('mainEnergy', formattedMetric(fmtEnergyFixed, typical.energyWh));
   bindText('mainCo2', formattedMetric(fmtCo2Fixed, typical.co2G));
   bindText('mainWater', formattedWater(typical.waterMl));
-  bindText('mainEnergyRange', `Research range: ${formattedMetric(fmtEnergyFixed, r.perUse.low.energyWh)}–${formattedMetric(fmtEnergyFixed, r.perUse.high.energyWh)}`);
+  const energyRangeLabel = profile.id === 'short-text' ? 'Across cited text tasks' : 'Research range';
+  bindText('mainEnergyRange', `${energyRangeLabel}: ${formattedMetric(fmtEnergyFixed, r.perUse.low.energyWh)}–${formattedMetric(fmtEnergyFixed, r.perUse.high.energyWh)}`);
   bindText('mainCo2Range', `Range on this grid: ${formattedMetric(fmtCo2Fixed, r.perUse.low.co2G)}–${formattedMetric(fmtCo2Fixed, r.perUse.high.co2G)}`);
   bindText('mainWaterRange', `Scenario range: ${formattedWater(r.perUse.low.waterMl)}–${formattedWater(r.perUse.high.waterMl)}`);
 
@@ -764,7 +762,7 @@ function renderMainEstimate() {
   $('mainMonthlySummary').innerHTML = `At the selected frequency, a typical month is <strong>${formattedMetric(fmtEnergy, month.energyWh)}</strong>, <strong>${formattedMetric(fmtCo2, month.co2G)} CO2e</strong> and <strong>${formattedMetric(fmtWater, month.waterMl)} of water</strong>. That energy is about ${simpleNumber(phoneCharges)} phone charges; the carbon is about ${simpleNumber(drivingKm)} km of petrol driving; the water is about ${simpleNumber(bottles)} × 500 ml bottles.`;
 
   const evidenceClass = profile.evidence === 'peer' ? 'evidence-peer' : 'evidence-preprint';
-  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">Source ${sourceRef(profile.source)}</span>`;
+  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">Source ${sourceRefs(profile.displaySources || [profile.source])}</span>`;
   bindText('mainAssumptions', profile.rangeNote);
 }
 
@@ -783,14 +781,14 @@ function currentInputs() {
   const pue = parseFloat($('pueSlider').value);
   const servingFactor = parseFloat($('servingSelect').value);
   const cacheHitRate = parseFloat($('cacheSlider').value) / 100;
-  const wueLPerKWh = parseFloat($('wueSlider').value);
-  return { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, wueLPerKWh };
+  const indirectLPerKWh = parseFloat($('wueSlider').value);
+  return { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, indirectLPerKWh };
 }
 
 function render() {
-  const { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, wueLPerKWh } = currentInputs();
+  const { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, indirectLPerKWh } = currentInputs();
   const qt = DATA.queryTypes.find((q) => q.id === $('queryType').value);
-  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue, { promptTok, outTok, servingFactor, cacheHitRate, wueLPerKWh });
+  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue, { promptTok, outTok, servingFactor, cacheHitRate, indirectLPerKWh });
   const pq = r.perQuery;
 
   const e = fmtEnergyFixed(pq.wh);
@@ -816,10 +814,11 @@ function render() {
   bindText('vMonthCost', cst ? `${cst.v}${cst.u}` : '—');
   bindText('vMonthGpu', gm ? `${gm.v} ${gm.u}` : '—');
 
-  $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh ${sourceRef(DATA.gridIntensity.source)}.`;
-  bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
+  const gridSource = sourceById(DATA.gridIntensity.source);
+  $('gridHint').innerHTML = `Grid data: ${gridSource.ref} — ${gridSource.label} ${sourceRef(DATA.gridIntensity.source)}`;
+  bindText('pueLabel', `PUE: ${pue.toFixed(2)}×`);
   bindText('cacheLabel', `Reusable prompt cache: ${Math.round(cacheHitRate * 100)}%`);
-  bindText('wueLabel', `Combined water intensity: ${wueLPerKWh.toFixed(1)} L/kWh`);
+  bindText('wueLabel', `Electricity water intensity: ${indirectLPerKWh.toFixed(1)} L/kWh`);
   bindText('promptLabel', qt.fixedWh != null ? 'Prompt tokens: —' : `Prompt tokens: ${promptTok.toLocaleString()}`);
   bindText('outLabel', qt.fixedWh != null ? 'Generated tokens: —' : `Generated tokens (including reasoning): ${outTok.toLocaleString()}`);
   bindText('queriesLabel', `Queries / day: ${queriesPerDay.toLocaleString()}`);
@@ -973,7 +972,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .join('');
   qtSel.value = 'standard';
   $('pueSlider').value = DATA.defaultPue;
-  $('wueSlider').value = totalWue();
+  $('wueSlider').value = DATA.waterModel.indirectLPerKWh;
   onQueryTypeChange();
 
   populateMainEstimator();
