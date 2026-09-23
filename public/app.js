@@ -119,8 +119,8 @@ const GROUP_COLORS = {
 function svgScatterChart(id, points, opts = {}) {
   const host = $(id);
   host.innerHTML = '';
-  const W = 700, H = 330;
-  const padL = 58, padB = 42, padT = 18, padR = 150;
+  const W = 900, H = 500;
+  const padL = 64, padB = 48, padT = 22, padR = 20;
   const innerW = W - padL - padR, innerH = H - padT - padB;
   const xVals = points.map((p) => p.x), yVals = points.map((p) => p.y);
   const xMin = Math.pow(10, Math.floor(Math.log10(Math.min.apply(null, xVals))));
@@ -205,34 +205,25 @@ function svgScatterChart(id, points, opts = {}) {
     }
   });
 
-  const lx = padL + innerW + 22;
-  let ly = padT + 10;
-  const seen = {};
-  points.forEach((p) => {
-    if (seen[p.color]) return;
-    seen[p.color] = true;
-    const group = p.group;
-    svg.appendChild(svgEl('rect', { x: lx, y: ly - 9, width: 12, height: 12, rx: 2, fill: p.color }));
-    const t = svgEl('text', { x: lx + 18, y: ly, fill: '#c9d1d9', 'font-size': 13 });
-    t.textContent = group;
-    svg.appendChild(t);
-    ly += 20;
-  });
-  const cap = svgEl('text', { x: lx, y: ly + 8, fill: '#9aa5b1', 'font-size': 13 });
-  cap.textContent = 'Bubble size = water (ml)';
-  svg.appendChild(cap);
-  if (points.some((p) => p.reference)) {
-    const capRef = svgEl('text', { x: lx, y: ly + 24, fill: '#9aa5b1', 'font-size': 13 });
-    capRef.textContent = 'K = kettle reference (fixed-size bubble)';
-    svg.appendChild(capRef);
-  }
-  if (points.some((p) => p.hollow)) {
-    const cap2 = svgEl('text', { x: lx, y: ly + (points.some((p) => p.reference) ? 40 : 24), fill: '#9aa5b1', 'font-size': 13 });
-    cap2.textContent = 'Dashed = no list price';
-    svg.appendChild(cap2);
-  }
+  const plot = document.createElement('div');
+  plot.className = 'scatter-plot';
+  plot.appendChild(svg);
+  host.appendChild(plot);
 
-  host.appendChild(svg);
+  const groups = [];
+  const seen = new Set();
+  points.forEach((p) => {
+    if (seen.has(p.group)) return;
+    seen.add(p.group);
+    groups.push(`<span class="scatter-legend-item"><i class="scatter-legend-swatch" style="background:${p.color}"></i>${p.group}</span>`);
+  });
+  const notes = ['Bubble size = water'];
+  if (points.some((p) => p.reference)) notes.push('K = kettle reference');
+  if (points.some((p) => p.hollow)) notes.push('dashed = no list price');
+  const legend = document.createElement('div');
+  legend.className = 'scatter-legend';
+  legend.innerHTML = `${groups.join('')}<span class="scatter-legend-note">${notes.join(' · ')}</span>`;
+  host.appendChild(legend);
 }
 
 const SCATTER_METRICS = {
