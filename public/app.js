@@ -77,9 +77,15 @@ function svgLineChart(id, labels, series, opts = {}) {
     t.textContent = fmtNum(val);
     svg.appendChild(t);
   }
+  if (opts.yUnit) {
+    const yt = svgEl('text', { x: 13, y: padT + innerH / 2, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13, transform: `rotate(-90 13 ${padT + innerH / 2})` });
+    yt.textContent = opts.yUnit;
+    svg.appendChild(yt);
+  }
   labels.forEach((lb, i) => {
     const x = padL + innerW * i / (labels.length - 1);
-    const t = svgEl('text', { x, y: H - 12, 'text-anchor': 'middle', fill: '#9aa5b1', 'font-size': 13 });
+    const anchor = i === 0 ? 'start' : i === labels.length - 1 ? 'end' : 'middle';
+    const t = svgEl('text', { x, y: H - 12, 'text-anchor': anchor, fill: '#9aa5b1', 'font-size': 13 });
     t.textContent = lb;
     svg.appendChild(t);
   });
@@ -97,13 +103,15 @@ function svgLineChart(id, labels, series, opts = {}) {
       svg.appendChild(svgEl('circle', { cx: xAt(i), cy: yAt(v), r: 3.5, fill: s.color }));
     });
   });
-  series.forEach((s, i) => {
-    const ly = 22 + i * 18;
-    svg.appendChild(svgEl('line', { x1: padL, y1: ly, x2: padL + 16, y2: ly, stroke: s.color, 'stroke-width': 2 }));
-    const t = svgEl('text', { x: padL + 22, y: ly + 4, fill: '#c9d1d9', 'font-size': 13 });
-    t.textContent = s.label;
-    svg.appendChild(t);
-  });
+  if (!opts.hideLegend) {
+    series.forEach((s, i) => {
+      const ly = 22 + i * 18;
+      svg.appendChild(svgEl('line', { x1: padL, y1: ly, x2: padL + 16, y2: ly, stroke: s.color, 'stroke-width': 2 }));
+      const t = svgEl('text', { x: padL + 22, y: ly + 4, fill: '#c9d1d9', 'font-size': 13 });
+      t.textContent = s.label;
+      svg.appendChild(t);
+    });
+  }
   host.appendChild(svg);
 }
 
@@ -326,7 +334,7 @@ function buildMacroChart() {
   const g = DATA.macro.globalDcElectricity.map((d) => d.tWh);
   svgLineChart('macroChart', labels, [
     { label: 'Global data-centre electricity (TWh)', color: '#5b8ff9', data: g },
-  ], { max: 1000 });
+  ], { max: 1000, yUnit: 'TWh', hideLegend: true });
 }
 
 function renderEquivalents(monthlyWh, monthlyCo2G) {
@@ -508,18 +516,14 @@ function renderRightToolForTask() {
   $('toolBody').innerHTML = rows;
 }
 
-function renderAuContext() {
+function renderOutlook() {
   const synthesis = DATA.macro.synthesis;
-  $('synthesisCards').innerHTML = (synthesis.cards || []).map((c) => `
-    <div class="synthesis-card">
-      <div class="value">${c.value}</div>
-      <h3>${c.title}</h3>
-      <p>${c.text}</p>
-      <p class="hint" style="margin-top:8px;">${sourceRefs(c.sources)}</p>
-    </div>`).join('');
   $('synthesisTakeaway').textContent = synthesis.takeaway || '';
   $('macroChartSources').innerHTML = sourceRefs(['ieaEnergyAI', 'aiServers']);
+  $('auDemandSources').innerHTML = sourceRefs(['afrHunger', 'afrAemo']);
+  $('auWaterSources').innerHTML = sourceRefs(['climateCouncil']);
   $('auChartSources').innerHTML = sourceRefs(['dcByte', 'aemoDc', 'climateCouncil']);
+  buildAuResourceCharts();
   buildAuPipelineChart();
 }
 
@@ -542,6 +546,15 @@ function buildAuPipelineChart() {
     ['#84a98c', '#5b8ff9', '#f6bd60', '#f28482'],
     { yUnit: 'GW', max: 25 }
   );
+}
+
+function buildAuResourceCharts() {
+  svgLineChart('auDemandChart', ['Today', '2035'], [
+    { label: 'Electricity demand (TWh)', color: '#5b8ff9', data: [4, 21.4] },
+  ], { max: 25, yUnit: 'TWh', hideLegend: true });
+  svgLineChart('auWaterChart', ['Today', '2030'], [
+    { label: 'Water demand (GL)', color: '#84a98c', data: [5.5, 17] },
+  ], { max: 20, yUnit: 'GL', hideLegend: true });
 }
 
 function buildTrainingChart() {
@@ -974,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSources();
   renderMethodology();
   renderRightToolForTask();
-  renderAuContext();
+  renderOutlook();
   renderStaticExamples();
   buildExamplesScatter();
   hydrateSourceRefs();
