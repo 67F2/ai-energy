@@ -1,4 +1,4 @@
-const VERSION = 'v20';
+const VERSION = 'v21';
 
 const SOURCES = {
   wattgpu: {
@@ -803,10 +803,10 @@ const DATA = {
     ],
     synthesis: {
       cards: [
-        { value: '415 → 945 TWh', title: 'Global electricity', text: 'Projected global data-centre electricity from 2024 to 2030.', sources: ['aiServers', 'ieaEnergyAI'] },
-        { value: '~4 → 21.4 TWh', title: 'Australia demand', text: 'Data-centre electricity estimate from ~2% today toward ~9% by 2035.', sources: ['afrHunger', 'afrAemo'] },
-        { value: '5.5 → 17 GL', title: 'Australian water', text: 'Projected industry water demand by 2030; location and cooling method matter.', sources: ['climateCouncil'] },
-        { value: '21.6 GW / 5.4 GW', title: 'Pipeline vs queue', text: 'Announced pipeline versus AEMO connection queue; neither equals committed capacity.', sources: ['dcByte', 'aemoDc', 'climateCouncil'] },
+        { value: '415 → 945 TWh', title: 'Global electricity', text: 'Projected data-centre demand, 2024–30.', sources: ['aiServers', 'ieaEnergyAI'] },
+        { value: '~4 → 21.4 TWh', title: 'Australia demand', text: 'Estimated data-centre demand, today–35.', sources: ['afrHunger', 'afrAemo'] },
+        { value: '5.5 → 17 GL', title: 'Australian water', text: 'Projected industry demand, today–30.', sources: ['climateCouncil'] },
+        { value: '21.6 / 5.4 GW', title: 'Pipeline / queue', text: 'Proposed—not committed—capacity.', sources: ['dcByte', 'aemoDc', 'climateCouncil'] },
       ],
       takeaway: 'Electricity, water and infrastructure demand are all rising, but the largest pipeline figures are uncertain: announced projects and connection requests are not the same as capacity that will actually be built.',
       sources: ['aiServers', 'concentratedSiting', 'afrAemo', 'afrGridNotReady', 'afrHunger', 'afrNextdcChest', 'afrNextdcBond', 'afrFirmus', 'abcDataCentres', 'climateCouncil', 'dcByte'],

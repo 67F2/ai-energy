@@ -25,7 +25,7 @@ function svgBarChart(id, labels, values, colors, opts = {}) {
   const maxLines = Math.max.apply(null, labels.map((l) => String(l).split('\n').length));
   const W = 560, H = 250;
   const padL = 48, padB = 22 + maxLines * 15, padT = 14, padR = 10;
-  const max = niceMax(Math.max.apply(null, values) * 1.1);
+  const max = opts.max || niceMax(Math.max.apply(null, values) * 1.1);
   const innerW = W - padL - padR, innerH = H - padT - padB;
   const n = values.length, slot = innerW / n, barW = Math.min(slot * 0.58, 52);
   const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', width: '100%', height: '100%' });
@@ -59,14 +59,14 @@ function svgBarChart(id, labels, values, colors, opts = {}) {
   host.appendChild(svg);
 }
 
-function svgLineChart(id, labels, series) {
+function svgLineChart(id, labels, series, opts = {}) {
   const host = $(id);
   host.innerHTML = '';
   const W = 560, H = 250;
   const padL = 48, padB = 34, padT = 16, padR = 12;
   const allVals = [];
   series.forEach((s) => s.data.forEach((v) => { if (v != null) allVals.push(v); }));
-  const max = niceMax(Math.max.apply(null, allVals) * 1.1);
+  const max = opts.max || niceMax(Math.max.apply(null, allVals) * 1.1);
   const innerW = W - padL - padR, innerH = H - padT - padB;
   const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: '100%', preserveAspectRatio: 'xMidYMid meet' });
   const ticks = 4;
@@ -324,31 +324,9 @@ function buildCostChart() {
 function buildMacroChart() {
   const labels = DATA.macro.globalDcElectricity.map((d) => d.year);
   const g = DATA.macro.globalDcElectricity.map((d) => d.tWh);
-  const firms = DATA.macro.bigSixFirms;
-  const firmData = labels.map((y) => {
-    const f = firms.find((x) => x.year === y);
-    return f ? f.high : null;
-  });
   svgLineChart('macroChart', labels, [
-    { label: 'Global data-center electricity (TWh)', color: '#5b8ff9', data: g },
-    { label: 'Six leading AI firms (TWh, high est.)', color: '#f28482', data: firmData, dash: true },
-  ]);
-}
-
-function buildMacroWaterChart() {
-  const labels = DATA.macro.globalDcElectricity.map((d) => d.year);
-  const wueTotal = totalWue();
-  const derived = DATA.macro.globalDcElectricity.map((d) => (d.tWh * wueTotal) / 1e3);
-  const bench = DATA.macro.waterBenchmark2030TrillionL || 9.3;
-  const benchSeries = labels.map((y) => (y === 2030 ? bench : null));
-  svgLineChart('macroWaterChart', labels, [
-    { label: 'Derived global DC water (trillion L)', color: '#5b8ff9', data: derived },
-    { label: 'UNU-INWEH 2030 projection (trillion L)', color: '#f6bd60', dash: true, data: benchSeries },
-  ]);
-}
-
-function renderMacroWaterNotes() {
-  $('macroWaterNotes').innerHTML = noteListHtml(DATA.macro.macroWaterNotes || []);
+    { label: 'Global data-centre electricity (TWh)', color: '#5b8ff9', data: g },
+  ], { max: 1000 });
 }
 
 function renderEquivalents(monthlyWh, monthlyCo2G) {
@@ -514,10 +492,6 @@ function renderMethodology() {
   $('methodology').innerHTML = html;
 }
 
-function renderMacroNotes() {
-  $('macroNotes').innerHTML = noteListHtml(DATA.macro.macroNotes || []);
-}
-
 function renderRightToolForTask() {
   const costLabels = ['Near-zero', 'Low', 'Moderate', 'High'];
   const rows = DATA.rightToolForTask
@@ -535,24 +509,17 @@ function renderRightToolForTask() {
 }
 
 function renderAuContext() {
-  $('auNotes').innerHTML = noteListHtml(DATA.auContext.notes || []);
   const synthesis = DATA.macro.synthesis;
   $('synthesisCards').innerHTML = (synthesis.cards || []).map((c) => `
     <div class="synthesis-card">
       <div class="value">${c.value}</div>
       <h3>${c.title}</h3>
       <p>${c.text}</p>
-      <p class="hint" style="margin-top:8px;">Sources: ${sourceRefs(c.sources)}</p>
+      <p class="hint" style="margin-top:8px;">${sourceRefs(c.sources)}</p>
     </div>`).join('');
   $('synthesisTakeaway').textContent = synthesis.takeaway || '';
-  $('synthesisNote').innerHTML = noteListHtml([{ text: 'Detailed evidence and financing context:', sources: synthesis.sources }]);
-  const buildOutNotes = [
-    { text: 'Announced pipeline: ~21.6 GW (Data Centres Australia / DC Byte). Not directly comparable to operational capacity — most announced projects never get built.', sources: ['dcByte'] },
-    { text: 'AEMO disclosed 5.4 GW across 11 projects in its transmission connection queue (June 2026) — connection interest, not committed builds (~60% NSW / 40% VIC).', sources: ['aemoDc'] },
-    { text: 'CommBank estimates a ~6 GW potential pipeline worth ~$150B by 2030, roughly 4x end-2025 operational capacity.', sources: ['commbankDc'] },
-    { text: 'Phantom demand: NSW has 11.4 GW in the development pipeline but only ~1.2 GW expected online by 2030; VIC 9 GW vs ~0.7 GW (Climate Council).', sources: ['climateCouncil'] },
-  ];
-  $('auBuildOutNotes').innerHTML = noteListHtml(buildOutNotes);
+  $('macroChartSources').innerHTML = sourceRefs(['ieaEnergyAI', 'aiServers']);
+  $('auChartSources').innerHTML = sourceRefs(['dcByte', 'aemoDc', 'climateCouncil']);
   buildAuPipelineChart();
 }
 
@@ -568,11 +535,13 @@ function noteListHtml(notes) {
 }
 
 function buildAuPipelineChart() {
-  const labels = ['2025', '2026', '2027', '2028', '2029', '2030'];
-  const values = [1.4, null, null, null, null, 3.2];
-  svgLineChart('auPipelineChart', labels, [
-    { label: 'Operational data-centre capacity (GW)', color: '#5b8ff9', data: values },
-  ]);
+  svgBarChart(
+    'auPipelineChart',
+    ['Operational\n2025', 'Forecast\n2030', 'Connection\nqueue', 'Announced\npipeline'],
+    [1.4, 3.2, 5.4, 21.6],
+    ['#84a98c', '#5b8ff9', '#f6bd60', '#f28482'],
+    { yUnit: 'GW', max: 25 }
+  );
 }
 
 function buildTrainingChart() {
@@ -1002,11 +971,8 @@ document.addEventListener('DOMContentLoaded', () => {
   buildEnergyChart();
   buildCostChart();
   buildMacroChart();
-  buildMacroWaterChart();
-  renderMacroWaterNotes();
   renderSources();
   renderMethodology();
-  renderMacroNotes();
   renderRightToolForTask();
   renderAuContext();
   renderStaticExamples();

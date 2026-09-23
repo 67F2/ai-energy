@@ -263,6 +263,20 @@
     .synthesis-card p { font-size: 15px; line-height: 1.45; color: var(--muted); margin: 0; }
     .synthesis-card a { color: var(--accent); }
     @media (max-width: 900px) { .synthesis-grid { grid-template-columns: repeat(2, 1fr); } }
+    .outlook-intro { max-width: 900px; margin-bottom: 20px; }
+    .outlook-intro h2 { font-size: clamp(24px, 4vw, 36px); margin-bottom: 8px; letter-spacing: -0.025em; }
+    .outlook-intro p { color: var(--muted); font-size: 17px; }
+    .outlook-chart { height: 380px; }
+    .chart-caption { max-width: 880px; margin-top: 12px; color: var(--muted); font-size: 15px; }
+    .outlook-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .outlook-action { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .outlook-action h3 { font-size: 15px; margin-bottom: 5px; }
+    .outlook-action p { color: var(--muted); font-size: 15px; }
+    .outlook-sources { margin-top: 14px; color: var(--muted); font-size: 15px; }
+    @media (max-width: 700px) {
+      .outlook-chart { height: 300px; }
+      .outlook-actions { grid-template-columns: 1fr; }
+    }
     .ex-group {
       font-size: 15px;
       text-transform: uppercase;
@@ -356,7 +370,7 @@
       <button class="tab-btn" id="nav-advanced" role="tab" aria-selected="false" aria-controls="tab-advanced" tabindex="-1" data-tab="tab-advanced">Advanced</button>
       <button class="tab-btn" id="nav-examples" role="tab" aria-selected="false" aria-controls="tab-examples" tabindex="-1" data-tab="tab-examples">Examples</button>
       <button class="tab-btn" id="nav-sustainable" role="tab" aria-selected="false" aria-controls="tab-sustainable" tabindex="-1" data-tab="tab-sustainable">Smart use</button>
-      <button class="tab-btn" id="nav-outlook" role="tab" aria-selected="false" aria-controls="tab-outlook" tabindex="-1" data-tab="tab-outlook">Big picture</button>
+      <button class="tab-btn" id="nav-outlook" role="tab" aria-selected="false" aria-controls="tab-outlook" tabindex="-1" data-tab="tab-outlook">Outlook</button>
       <button class="tab-btn" id="nav-sources" role="tab" aria-selected="false" aria-controls="tab-sources" tabindex="-1" data-tab="tab-sources">Sources</button>
     </nav>
 
@@ -607,42 +621,35 @@
     </section>
 
     <section class="tab" id="tab-outlook" role="tabpanel" aria-labelledby="nav-outlook" aria-hidden="true">
+      <div class="outlook-intro">
+        <h2>AI infrastructure outlook</h2>
+        <p id="synthesisTakeaway"></p>
+      </div>
+
       <div class="card">
-        <h2>Synthesis — where it's all heading</h2>
         <div class="synthesis-grid" id="synthesisCards"></div>
-        <p class="hint" id="synthesisTakeaway" style="margin-top:14px;"></p>
-        <div class="notes" id="synthesisNote" style="margin-top:8px;"></div>
       </div>
 
       <div class="card">
-        <h2>Macro context — AI and electricity</h2>
-        <p class="hint" style="margin-bottom:12px;">Data-centre demand is projected to roughly double by 2030, with AI driving a disproportionate share. Projections from IEA 2025 and 2026 research preprints.</p>
-        <div class="grid2">
-          <div class="chart-box"><div id="macroChart"></div></div>
-          <div class="notes" id="macroNotes"></div>
+        <h2>Global data-centre electricity demand</h2>
+        <div class="chart-box outlook-chart"><div id="macroChart"></div></div>
+        <p class="chart-caption">Demand is projected to rise from about 415 TWh in 2024 to 945 TWh in 2030—more than doubling in six years. The intervening years illustrate the trajectory; the endpoints carry the evidence. <span id="macroChartSources"></span></p>
+      </div>
+
+      <div class="card">
+        <h2>Australia: operating capacity versus proposals</h2>
+        <div class="chart-box outlook-chart"><div id="auPipelineChart"></div></div>
+        <p class="chart-caption">Operating capacity is forecast to grow from 1.4 GW to about 3.2 GW by 2030. Connection queues and announced pipelines show interest—not committed capacity—and should not be added together. <span id="auChartSources"></span></p>
+      </div>
+
+      <div class="card">
+        <h2>What this means for decision-makers</h2>
+        <div class="outlook-actions">
+          <div class="outlook-action"><h3>Plan for credible demand</h3><p>Separate operating and forecast capacity from connection requests and announcements.</p></div>
+          <div class="outlook-action"><h3>Link growth to supply</h3><p>Coordinate new connections with generation, networks and local water constraints.</p></div>
+          <div class="outlook-action"><h3>Require transparent reporting</h3><p>Use consistent energy and water boundaries so projects can be compared.</p></div>
         </div>
-      </div>
-
-      <div class="card">
-        <h2>Water — the undercounted resource</h2>
-        <p class="hint" style="margin-bottom:12px;">Water follows energy: each kWh of data-centre electricity embeds ~5.3 L of total water use (direct cooling + indirect power-plant water). The derived line below scales the electricity projection by that WUE; the benchmark shows a larger UNU-INWEH estimate.</p>
-        <div class="grid2">
-          <div class="chart-box"><div id="macroWaterChart"></div></div>
-          <div class="notes" id="macroWaterNotes"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Australian context: data centres &amp; AI infrastructure</h2>
-        <p class="hint" style="margin-bottom:12px;">Australia has ~162 operational data centres and one of the world's largest construction pipelines. Federal expectations for developers (March 2026) are guidance, not law.</p>
-        <div class="notes" id="auNotes"></div>
-      </div>
-
-      <div class="card">
-        <h2>Australia's data-centre build-out</h2>
-        <p class="hint" style="margin-bottom:12px;">Operational capacity is forecast to grow from ~1.4 GW to ~3.2 GW by 2030 (Data Centres Australia / DC Byte). The much larger announced numbers below are not directly comparable to operational capacity — they are aspirational pipelines and connection queues, and "phantom demand" means many applications never get built.</p>
-        <div class="chart-box small" style="max-width:520px;margin:0 auto;"><div id="auPipelineChart"></div></div>
-        <div class="notes" id="auBuildOutNotes" style="margin-top:14px;"></div>
+        <p class="outlook-sources"><a href="#" data-goto="tab-sources">View all sources and methodology →</a></p>
       </div>
     </section>
 
@@ -668,10 +675,10 @@
     </footer>
   </div>
 
-  <script src="data.js?v=20"></script>
-  <script src="examples.js?v=20"></script>
-  <script src="model.js?v=20"></script>
-  <script src="format.js?v=20"></script>
-  <script src="app.js?v=20"></script>
+  <script src="data.js?v=21"></script>
+  <script src="examples.js?v=21"></script>
+  <script src="model.js?v=21"></script>
+  <script src="format.js?v=21"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>
