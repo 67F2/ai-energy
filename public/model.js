@@ -118,7 +118,9 @@ function computeQueryType(model, qt, queriesPerDay, gridG, pue, options = {}) {
       gpuSecTotal: scale(() => null),
     };
   }
-  return compute(model, qt.promptTok, qt.outTok, queriesPerDay, gridG, pue, options);
+  const promptTok = options.promptTok == null ? qt.promptTok : options.promptTok;
+  const outTok = options.outTok == null ? qt.outTok : options.outTok;
+  return compute(model, promptTok, outTok, queriesPerDay, gridG, pue, options);
 }
 
 function exampleResult(ex, gridG, pue) {

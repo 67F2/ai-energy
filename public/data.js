@@ -1,4 +1,4 @@
-const VERSION = 'v23';
+const VERSION = 'v24';
 
 const SOURCES = {
   wattgpu: {
@@ -581,6 +581,7 @@ const DATA = {
       supportingSources: ['sustainableNlp', 'jouleInference'],
       boundary: 'Operational inference energy; measured open models and tasks.',
       note: 'The low and typical values follow measured task-specific classification and text generation; the high value is the lower edge of the frontier-chat range.',
+      rangeNote: 'Short tasks can use very different models and amounts of computing. This range covers measured results from simple classification to short text generation.',
     },
     {
       id: 'standard-chat',
@@ -593,6 +594,7 @@ const DATA = {
       supportingSources: ['mlEnergyBenchmark', 'energyOptimizations', 'mlEnergyDiagnostics', 'promptsToPower'],
       boundary: 'Operational inference including production-serving assumptions and PUE.',
       note: 'The range is the published interquartile range for frontier-scale inference, not provider telemetry.',
+      rangeNote: 'AI services use different models and hardware. This range covers the middle half of the results measured in the study.',
     },
     {
       id: 'reasoning',
@@ -605,6 +607,7 @@ const DATA = {
       supportingSources: ['cotCompression', 'aiEnergyScore', 'mlEnergyDiagnostics'],
       boundary: 'Operational inference including production-serving assumptions and PUE.',
       note: 'The range is the published interquartile range for the study’s test-time-scaling scenario.',
+      rangeNote: 'Longer reasoning uses more computing, and models may reason for different lengths. This range covers the middle half of the study’s results.',
     },
     {
       id: 'image',
@@ -617,6 +620,7 @@ const DATA = {
       supportingSources: ['mlEnergyDiagnostics'],
       boundary: 'Operational inference measured across open text-to-image models.',
       note: 'The study found a very wide spread across image-generation models; 0.34 Wh is derived from its approximate lowest-model result, 2.9 Wh is the reported mean and 11.49 Wh the reported high.',
+      rangeNote: 'Image models vary widely in size and settings. This range runs from the study’s lowest result to its highest.',
     },
     {
       id: 'transcription',
@@ -628,6 +632,7 @@ const DATA = {
       source: 'asrCompare',
       boundary: 'Operational inference; range spans measured/estimated cloud and local systems.',
       note: 'Derived from the study’s totals for approximately 22.2 hours of audio; deployment choice changes the result.',
+      rangeNote: 'Cloud and local speech-to-text systems use different hardware. This range covers the systems compared in the study.',
     },
     {
       id: 'video',
@@ -640,6 +645,7 @@ const DATA = {
       supportingSources: ['mlEnergyDiagnostics'],
       boundary: 'Operational GPU measurement for two WAN2.1 configurations.',
       note: 'Evidence is an unreviewed workshop preprint. The low/typical case is the 1.3B model; the high case is the 14B model.',
+      rangeNote: 'Video generation changes greatly with model size and settings. The lower figure uses the smaller model and the upper figure uses the larger one; this research has not yet been peer reviewed.',
     },
   ],
   kettle: {

@@ -764,8 +764,8 @@ function renderMainEstimate() {
   $('mainMonthlySummary').innerHTML = `At the selected frequency, a typical month is <strong>${formattedMetric(fmtEnergy, month.energyWh)}</strong>, <strong>${formattedMetric(fmtCo2, month.co2G)} CO2e</strong> and <strong>${formattedMetric(fmtWater, month.waterMl)} of water</strong>. That energy is about ${simpleNumber(phoneCharges)} phone charges; the carbon is about ${simpleNumber(drivingKm)} km of petrol driving; the water is about ${simpleNumber(bottles)} × 500 ml bottles.`;
 
   const evidenceClass = profile.evidence === 'peer' ? 'evidence-peer' : 'evidence-preprint';
-  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">Source ${sourceRef(profile.source)}</span><span class="hint">Grid: ${grid.label}, ~${grid.gCO2ePerKWh} g CO2e/kWh</span>`;
-  bindText('mainAssumptions', `${profile.description} ${profile.boundary} ${profile.note} Carbon changes with the selected electricity grid. Water uses the dashboard’s ${totalWue()} L/kWh combined direct-and-indirect scenario. Actual providers generally do not publish per-request telemetry.`);
+  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">Source ${sourceRef(profile.source)}</span>`;
+  bindText('mainAssumptions', profile.rangeNote);
 }
 
 function populateMainEstimator() {
@@ -790,7 +790,7 @@ function currentInputs() {
 function render() {
   const { model, promptTok, outTok, queriesPerDay, gridG, pue, servingFactor, cacheHitRate, wueLPerKWh } = currentInputs();
   const qt = DATA.queryTypes.find((q) => q.id === $('queryType').value);
-  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue, { servingFactor, cacheHitRate, wueLPerKWh });
+  const r = computeQueryType(model, qt, queriesPerDay, gridG, pue, { promptTok, outTok, servingFactor, cacheHitRate, wueLPerKWh });
   const pq = r.perQuery;
 
   const e = fmtEnergyFixed(pq.wh);
@@ -971,9 +971,10 @@ document.addEventListener('DOMContentLoaded', () => {
   qtSel.innerHTML = DATA.queryTypes
     .map((q) => `<option value="${q.id}">${q.label}</option>`)
     .join('');
+  qtSel.value = 'standard';
   $('pueSlider').value = DATA.defaultPue;
   $('wueSlider').value = totalWue();
-  syncFixedTypeUI(DATA.queryTypes.find((q) => q.id === qtSel.value));
+  onQueryTypeChange();
 
   populateMainEstimator();
   populateGridSelects();

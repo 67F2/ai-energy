@@ -369,7 +369,6 @@
 
     <section class="tab active" id="tab-estimator" role="tabpanel" aria-labelledby="nav-estimator" aria-hidden="false">
       <div class="estimate-intro">
-        <h2>A useful estimate in three choices</h2>
         <p>Choose the activity, how often you use it and the electricity grid. Results are research-based ranges—not a meter reading from an AI provider.</p>
       </div>
       <div class="card">
@@ -415,7 +414,7 @@
         <div class="estimate-summary" id="mainMonthlySummary"></div>
         <div class="evidence-line" id="mainEvidence"></div>
         <details class="assumptions">
-          <summary>Why is this a range?</summary>
+          <summary>Why estimates vary</summary>
           <p id="mainAssumptions"></p>
         </details>
         <a href="#" class="advanced-link" data-goto="tab-advanced">Advanced</a>
@@ -572,7 +571,7 @@
             <div class="cards">
               <div class="metric"><div class="v" id="vEnergy">–</div><div class="u">Energy</div></div>
               <div class="metric"><div class="v" id="vCo2">–</div><div class="u">CO2e</div></div>
-              <div class="metric"><div class="v" id="vCost">–</div><div class="u">Cost (USD)</div></div>
+              <div class="metric"><div class="v" id="vCost">–</div><div class="u">USD</div></div>
               <div class="metric"><div class="v" id="vWater">–</div><div class="u">Water</div></div>
               <div class="metric"><div class="v" id="vGpu">–</div><div class="u">Accelerator-equivalent time</div></div>
             </div>
@@ -583,11 +582,12 @@
             <div class="cards">
               <div class="metric"><div class="v" id="vMonthEnergy">–</div><div class="u">Energy</div></div>
               <div class="metric"><div class="v" id="vMonthCo2">–</div><div class="u">CO2e</div></div>
-              <div class="metric"><div class="v" id="vMonthCost">–</div><div class="u">Cost (USD)</div></div>
+              <div class="metric"><div class="v" id="vMonthCost">–</div><div class="u">USD</div></div>
               <div class="metric"><div class="v" id="vMonthWater">–</div><div class="u">Water</div></div>
               <div class="metric"><div class="v" id="vMonthGpu">–</div><div class="u">Accelerator-equivalent time</div></div>
             </div>
-            <h3>In common terms</h3>
+            <h3>Monthly footprint in familiar terms</h3>
+            <p class="hint" style="margin-bottom:10px;">Each card is a separate comparison of the same monthly footprint. Do not add them together.</p>
             <div class="eq-grid" id="equivalents"></div>
           </div>
 
@@ -661,10 +661,10 @@
     </footer>
   </div>
 
-  <script src="data.js?v=23"></script>
-  <script src="examples.js?v=23"></script>
-  <script src="model.js?v=23"></script>
-  <script src="format.js?v=23"></script>
-  <script src="app.js?v=23"></script>
+  <script src="data.js?v=24"></script>
+  <script src="examples.js?v=24"></script>
+  <script src="model.js?v=24"></script>
+  <script src="format.js?v=24"></script>
+  <script src="app.js?v=24"></script>
 </body>
 </html>
