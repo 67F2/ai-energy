@@ -400,13 +400,7 @@ function renderAggTable(r) {
 
 function exampleSourceLinks(ex) {
   if (!ex.sources || !ex.sources.length) return '';
-  const links = ex.sources
-    .map((id) => {
-      const s = sourceById(id);
-      return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
-    })
-    .filter(Boolean)
-    .join(' · ');
+  const links = sourceRefs(ex.sources);
   return links ? `<div class="ex-src">Sources: ${links}</div>` : '';
 }
 
@@ -427,14 +421,52 @@ const SOURCE_CATS = [
   { id: 'vendor', label: 'Vendor & company sources', color: '#adb5bd', desc: 'Pricing pages, company blogs and self-reported claims; treat as promotional.' },
 ];
 
+function sourcePublicationYear(source) {
+  const match = `${source.ref} ${source.label}`.match(/\b(19|20)\d{2}\b/g);
+  return match ? Math.max(...match.map(Number)) : 0;
+}
+
+const SOURCE_ENTRIES = SOURCE_CATS.flatMap((category) => Object.entries(SOURCES)
+  .filter(([, source]) => source.cat === category.id)
+  .map(([id, source], order) => ({ id, source, order, year: sourcePublicationYear(source) }))
+  .sort((a, b) => b.year - a.year || a.order - b.order));
+const SOURCE_NUMBERS = new Map(SOURCE_ENTRIES.map(({ id }, index) => [id, index + 1]));
+
+function escapeAttr(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function sourceRef(id) {
+  const source = sourceById(id);
+  const number = SOURCE_NUMBERS.get(id);
+  if (!source || !number) return '';
+  const description = `${source.ref}: ${source.label}`;
+  return `<a class="source-ref" href="#source-${id}" data-source-ref="${id}" title="${escapeAttr(description)}" aria-label="Reference ${number}: ${escapeAttr(description)}">[${number}]</a>`;
+}
+
+function sourceRefs(ids) {
+  return [...new Set(ids || [])].map(sourceRef).filter(Boolean).join(' ');
+}
+
+function hydrateSourceRefs() {
+  document.querySelectorAll('[data-source-ref]').forEach((link) => {
+    const id = link.dataset.sourceRef;
+    const source = sourceById(id);
+    const number = SOURCE_NUMBERS.get(id);
+    if (!source || !number) return;
+    const description = `${source.ref}: ${source.label}`;
+    link.textContent = `[${number}]`;
+    link.title = description;
+    link.setAttribute('aria-label', `Reference ${number}: ${description}`);
+  });
+}
+
 function renderSources() {
   const cats = SOURCE_CATS.map((c) => {
-    const links = Object.values(SOURCES)
-      .filter((s) => s.cat === c.id)
-      .map((s, order) => ({ s, order, year: sourcePublicationYear(s) }))
-      .sort((a, b) => b.year - a.year || a.order - b.order)
+    const links = SOURCE_ENTRIES
+      .filter(({ source }) => source.cat === c.id)
       .map(
-        ({ s, year }) => `<li><span class="source-year">${year || 'n.d.'}</span><span><a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a> — ${s.ref}.${s.accessed ? ` Accessed ${s.accessed}.` : ''} ${s.note}</span></li>`
+        ({ id, source, year }) => `<li class="source-entry" id="source-${id}"><span class="source-year">${year || 'n.d.'}</span><span><strong>[${SOURCE_NUMBERS.get(id)}]</strong> <a href="${srcHref(source)}" target="_blank" rel="noopener">${source.label}</a> — ${source.ref}.${source.accessed ? ` Accessed ${source.accessed}.` : ''} ${source.note}</span></li>`
       )
       .join('');
     if (!links) return '';
@@ -445,11 +477,6 @@ function renderSources() {
     </div>`;
   }).join('');
   $('sourceList').innerHTML = cats;
-}
-
-function sourcePublicationYear(source) {
-  const match = `${source.ref} ${source.label}`.match(/\b(19|20)\d{2}\b/g);
-  return match ? Math.max(...match.map(Number)) : 0;
 }
 
 function renderMethodology() {
@@ -464,22 +491,22 @@ function renderMethodology() {
       <div class="method">
         <h3>⚡ Energy</h3>
         <p><code>Wh = (promptTok × J/input + outTok × J/output) × PUE ÷ 3600</code></p>
-        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks and checked against the peer-reviewed ${src('jouleInference')} range; they are not provider telemetry. PUE overhead ${pue}× is an adjustable assumption.</p>
+        <p class="hint">Per-token joules are scenario assumptions informed by measured inference benchmarks and checked against the peer-reviewed range ${sourceRef('jouleInference')}; they are not provider telemetry. PUE overhead ${pue}× is an adjustable assumption.</p>
       </div>
       <div class="method">
         <h3>🌡️ CO2</h3>
         <p><code>g CO2e = kWh × ${gridG} g/kWh</code></p>
-        <p class="hint">Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}). Multiply energy by grid carbon intensity; the real value depends on grid mix and time of day.</p>
+        <p class="hint">Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh ${sourceRef(DATA.gridIntensity.source)}. The real value depends on grid mix and time of day.</p>
       </div>
       <div class="method">
         <h3>💧 Water</h3>
         <p><code>ml = kWh × ${wueTotal} L/kWh × 1000</code></p>
-        <p class="hint">Primary estimate uses direct WUE ${wm.wueLPerKWh} L/kWh (${src('eesiWater')}) plus ${wm.indirectLPerKWh} L/kWh indirect electricity water (${src('cellReports')}). The source-WUE framework and its regional limits are described by ${src('npjWater')}. Published prompt-level figures such as 519 ml are shown separately because their system boundaries differ.</p>
+        <p class="hint">Primary estimate uses direct WUE ${wm.wueLPerKWh} L/kWh ${sourceRef('eesiWater')} plus ${wm.indirectLPerKWh} L/kWh indirect electricity water ${sourceRef('cellReports')}. Regional limits are described in ${sourceRef('npjWater')}. Published prompt-level figures such as 519 ml are shown separately because their boundaries differ.</p>
       </div>
       <div class="method">
         <h3>💵 Cost</h3>
         <p><code>USD = (promptTok ÷ 1M) × price_in + (outTok ÷ 1M) × price_out</code></p>
-        <p class="hint">Public API list prices per 1M tokens (${src('openaiPrice')}, ${src('anthropicPrice')}).</p>
+        <p class="hint">Public API list prices per 1M tokens ${sourceRefs(['openaiPrice', 'anthropicPrice'])}.</p>
       </div>
     </div>
     <p class="hint" style="margin-top:12px;">Fixed examples (AI images, video clips, audio transcription) retain each study's published energy boundary instead of adding the adjustable PUE. CO2 and water are then derived with the selected grid and the dashboard's water scenario. Each row links its source.</p>
@@ -510,19 +537,12 @@ function renderRightToolForTask() {
 function renderAuContext() {
   $('auNotes').innerHTML = noteListHtml(DATA.auContext.notes || []);
   const synthesis = DATA.macro.synthesis;
-  const sourceLinks = (ids) => (ids || [])
-    .map((id) => {
-      const s = sourceById(id);
-      return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
-    })
-    .filter(Boolean)
-    .join(' · ');
   $('synthesisCards').innerHTML = (synthesis.cards || []).map((c) => `
     <div class="synthesis-card">
       <div class="value">${c.value}</div>
       <h3>${c.title}</h3>
       <p>${c.text}</p>
-      <p style="margin-top:8px;">${sourceLinks(c.sources)}</p>
+      <p class="hint" style="margin-top:8px;">Sources: ${sourceRefs(c.sources)}</p>
     </div>`).join('');
   $('synthesisTakeaway').textContent = synthesis.takeaway || '';
   $('synthesisNote').innerHTML = noteListHtml([{ text: 'Detailed evidence and financing context:', sources: synthesis.sources }]);
@@ -540,14 +560,8 @@ function noteListHtml(notes) {
   const html = (notes || [])
     .map((n) => {
       const text = typeof n === 'string' ? n : n.text;
-      const links = (typeof n === 'object' && n.sources ? n.sources : [])
-        .map((id) => {
-          const s = sourceById(id);
-          return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
-        })
-        .filter(Boolean)
-        .join(' · ');
-      return `<li>${text}${links ? `<span class="note-src">${links}</span>` : ''}</li>`;
+      const links = sourceRefs(typeof n === 'object' ? n.sources : []);
+      return `<li>${text}${links ? `<span class="note-src">Sources: ${links}</span>` : ''}</li>`;
     })
     .join('');
   return `<ul>${html}</ul>`;
@@ -675,8 +689,7 @@ function renderStaticExamples() {
 
   const refCards = (DATA.referenceCards || [])
     .map((c) => {
-      const s = sourceById(c.source);
-      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
+      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label} ${sourceRef(c.source)}</div></div>`;
     })
     .join('');
   const wueCard = `<div class="metric"><div class="v" id="wueValue">${wueTotal} L/kWh</div><div class="u">composite water-intensity scenario${wueSourceLink('cellReports')}</div></div>`;
@@ -685,8 +698,7 @@ function renderStaticExamples() {
 
   const trainCards = (DATA.trainingEmbodied || [])
     .map((c) => {
-      const s = sourceById(c.source);
-      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label}${s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : ''}</div></div>`;
+      return `<div class="metric"><div class="v">${c.value}</div><div class="u">${c.label} ${sourceRef(c.source)}</div></div>`;
     })
     .join('');
   $('trainingCards').innerHTML = trainCards;
@@ -710,10 +722,6 @@ function renderEverydayTable(gridG) {
     const g = kg * 1000;
     return `≈ ${f(g / emailG)} emails · ${f(g / chatG)} chat queries · ${f(g / imageG)} AI images · ${f(g / audioG)} h audio · ${f(g / videoG)} video clips`;
   };
-  const srcLink = (id) => {
-    const s = sourceById(id);
-    return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
-  };
   const rows = [
     { thing: 'Manufacturing a new EV (incl. battery)', footprint: '~7 t CO2e', special: 'Training a GPT-3-era model (~284 t CO2e) is the carbon of about 41 new EVs.', source: 'icctEv' },
     { thing: 'A litre of milk', footprint: '~1.3 kg CO2e', kg: 1.3, source: 'owidFood' },
@@ -728,13 +736,13 @@ function renderEverydayTable(gridG) {
   $('everydayGridBadge').textContent = `${DATA.gridIntensity.label} ~${gridG} g CO2e/kWh`;
   $('everydayBody').innerHTML = rows.map((r) => {
     const ai = r.special || spectrumFor(r.kg);
-    return `<tr><td><strong>${r.thing}</strong><br><span class="hint">${r.footprint} · ${srcLink(r.source)}</span></td><td class="why">${ai}</td></tr>`;
+    return `<tr><td><strong>${r.thing}</strong><br><span class="hint">${r.footprint} ${sourceRef(r.source)}</span></td><td class="why">${ai}</td></tr>`;
   }).join('');
 }
 
 function wueSourceLink(id) {
-  const s = sourceById(id);
-  return s ? ` · <a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : '';
+  const reference = sourceRef(id);
+  return reference ? ` ${reference}` : '';
 }
 
 function formattedMetric(formatter, value) {
@@ -773,9 +781,8 @@ function renderMainEstimate() {
   const bottles = month.waterMl / DATA.equivalents.waterBottleMl;
   $('mainMonthlySummary').innerHTML = `At the selected frequency, a typical month is <strong>${formattedMetric(fmtEnergy, month.energyWh)}</strong>, <strong>${formattedMetric(fmtCo2, month.co2G)} CO2e</strong> and <strong>${formattedMetric(fmtWater, month.waterMl)} of water</strong>. That energy is about ${simpleNumber(phoneCharges)} phone charges; the carbon is about ${simpleNumber(drivingKm)} km of petrol driving; the water is about ${simpleNumber(bottles)} × 500 ml bottles.`;
 
-  const source = sourceById(profile.source);
   const evidenceClass = profile.evidence === 'peer' ? 'evidence-peer' : 'evidence-preprint';
-  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">${source ? `<a href="${srcHref(source)}" target="_blank" rel="noopener">${source.label}</a>` : ''}</span><span class="hint">Grid: ${grid.label}, ~${grid.gCO2ePerKWh} g CO2e/kWh</span>`;
+  $('mainEvidence').innerHTML = `<span class="badge ${evidenceClass}">${profile.evidenceLabel}</span><span class="hint">Source ${sourceRef(profile.source)}</span><span class="hint">Grid: ${grid.label}, ~${grid.gCO2ePerKWh} g CO2e/kWh</span>`;
   bindText('mainAssumptions', `${profile.description} ${profile.boundary} ${profile.note} Carbon changes with the selected electricity grid. Water uses the dashboard’s ${totalWue()} L/kWh combined direct-and-indirect scenario. Actual providers generally do not publish per-request telemetry.`);
 }
 
@@ -827,7 +834,7 @@ function render() {
   bindText('vMonthCost', cst ? `${cst.v}${cst.u}` : '—');
   bindText('vMonthGpu', gm ? `${gm.v} ${gm.u}` : '—');
 
-  $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh (${src(DATA.gridIntensity.source)}).`;
+  $('gridHint').innerHTML = `Selected grid: ${DATA.gridIntensity.label}, ~${gridG} g CO2e/kWh ${sourceRef(DATA.gridIntensity.source)}.`;
   bindText('pueLabel', `PUE: ${pue.toFixed(2)}`);
   bindText('cacheLabel', `Reusable prompt cache: ${Math.round(cacheHitRate * 100)}%`);
   bindText('wueLabel', `Combined water intensity: ${wueLPerKWh.toFixed(1)} L/kWh`);
@@ -885,7 +892,7 @@ function syncFixedTypeUI(qt) {
   const hint = $('queryTypeHint');
   if (hint) {
     if (fixed) {
-      hint.innerHTML = `Fixed per-inference preset (published measurement) — Model and token sliders don't apply. Source: ${qt.sources.map(src).join(', ')}.`;
+      hint.innerHTML = `Fixed per-inference preset (published measurement) — Model and token sliders don't apply. Sources: ${sourceRefs(qt.sources)}.`;
       hint.style.display = 'block';
     } else {
       hint.style.display = 'none';
@@ -930,6 +937,18 @@ function bindTabs() {
       activate(el.dataset.goto);
     });
   });
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-source-ref]');
+    if (!link) return;
+    e.preventDefault();
+    activate('tab-sources');
+    document.querySelectorAll('.source-entry.is-target').forEach((entry) => entry.classList.remove('is-target'));
+    const entry = $(`source-${link.dataset.sourceRef}`);
+    if (entry) {
+      entry.classList.add('is-target');
+      entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -972,4 +991,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAuContext();
   renderStaticExamples();
   buildExamplesScatter();
+  hydrateSourceRefs();
 });

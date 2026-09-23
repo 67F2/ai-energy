@@ -112,6 +112,7 @@
     .cost-lbl { font-size: 15px; color: var(--muted); }
     td.why { color: var(--muted); font-size: 15px; }
     .note-src { display: block; margin-top: 2px; font-size: 15px; }
+    .source-ref { font-weight: 700; white-space: nowrap; text-decoration: none; }
     .notes ul { list-style: none; }
     .notes li { font-size: 15px; color: var(--muted); margin-bottom: 10px; padding-left: 16px; position: relative; }
     .notes li::before { content: '•'; position: absolute; left: 0; color: var(--accent); }
@@ -208,6 +209,8 @@
     .source-cat ul { padding: 0; margin: 0; list-style: none; }
     .source-cat li { display: grid; grid-template-columns: 48px 1fr; gap: 10px; margin-bottom: 9px; font-size: 15px; color: var(--muted); }
     .source-year { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
+    .source-entry { scroll-margin-top: 16px; border-radius: 6px; }
+    .source-entry.is-target { background: rgba(91, 143, 249, 0.12); outline: 4px solid rgba(91, 143, 249, 0.12); }
     footer { margin-top: 40px; padding: 20px 0 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 15px; text-align: center; }
     footer .tagline { margin: 0 auto; line-height: 1.5; }
     footer ul { padding-left: 18px; margin-top: 8px; text-align: left; }
@@ -472,8 +475,9 @@
         <p>For common lookups, Ecosia combines regular web search with optional AI Overviews and AI Chat. You can switch all AI features off in Settings, then use AI only when it is genuinely helpful.</p>
         <p class="hint" style="margin-top:10px;">Ecosia says it uses smaller, more efficient models, avoids video generation and produces more renewable electricity than its AI uses. These are company-reported claims, not independent per-query measurements.</p>
         <p class="hint" style="margin-top:10px;">
-          <a href="https://blog.ecosia.org/ai-free-search/" target="_blank" rel="noopener">AI-free search</a> ·
-          <a href="https://blog.ecosia.org/ecosia-ai/" target="_blank" rel="noopener">How Ecosia approaches AI</a>
+          Sources:
+          <a class="source-ref" href="#source-ecosiaAiFree" data-source-ref="ecosiaAiFree">[source]</a>
+          <a class="source-ref" href="#source-ecosiaAi" data-source-ref="ecosiaAi">[source]</a>
         </p>
       </div>
 
@@ -481,8 +485,9 @@
         <h2>Why these tips</h2>
         <p class="hint">Peer-reviewed measurements link longer outputs and response times with higher inference energy. The IEA also finds that reasoning, image, video and agentic tasks can use hundreds or thousands of times more energy than simple text.</p>
         <p class="hint" style="margin-top:10px;">
-          <a href="https://doi.org/10.18653/v1/2025.naacl-long.632" target="_blank" rel="noopener">Poddar et al., NAACL 2025</a> ·
-          <a href="https://www.iea.org/reports/key-questions-on-energy-and-ai" target="_blank" rel="noopener">IEA, 2026</a>
+          Sources:
+          <a class="source-ref" href="#source-sustainableNlp" data-source-ref="sustainableNlp">[source]</a>
+          <a class="source-ref" href="#source-ieaKeyQuestions" data-source-ref="ieaKeyQuestions">[source]</a>
         </p>
       </div>
     </section>
@@ -644,7 +649,7 @@
       </div>
       <div class="card">
         <h2>Sources</h2>
-        <p class="hint" style="margin-bottom:12px;">Sources are grouped by trust level and ordered by publication year, newest first.</p>
+        <p class="hint" style="margin-bottom:12px;">Numbered references from across the calculator, grouped by trust level and ordered newest first. Select a title to open the original publication.</p>
         <div id="sourceList"></div>
       </div>
     </section>

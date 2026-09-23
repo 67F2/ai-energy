@@ -4,10 +4,6 @@
 
 const modelById = (id) => DATA.models.find((m) => m.id === id);
 const sourceById = (id) => SOURCES[id];
-const src = (id) => {
-  const s = sourceById(id);
-  return s ? `<a href="${srcHref(s)}" target="_blank" rel="noopener">${s.label}</a>` : id;
-};
 
 // Combined water-use efficiency: direct cooling + indirect (electricity-embedded) water.
 const totalWue = () => DATA.waterModel.wueLPerKWh + (DATA.waterModel.indirectLPerKWh || 0);
